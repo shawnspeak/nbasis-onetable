@@ -10,42 +10,42 @@ namespace NBasis.OneTable
 {
     public static class ConfigurationExtensions
     {
-        public static IServiceCollection AddOneTable(this IServiceCollection serivces, string tableName, Action<OneTableConfiguration> options)
+        public static IServiceCollection AddOneTable<TContext>(this IServiceCollection serivces, string tableName)
         {
-            var config = OneTableConfiguration.Default();
-            config.Tables[tableName] = tableName;
+            //var config = OneTableConfiguration.Default();
+            //config.Tables[tableName] = tableName;
 
-            options?.Invoke(config);
+            //options?.Invoke(config);
 
-            AddOneTable(serivces, config);
+            //AddOneTable(serivces, config);
 
             return serivces;
         }
 
-        public static IServiceCollection AddOneTable(this IServiceCollection serivces, Action<OneTableConfiguration> options)
-        {
-            var config = OneTableConfiguration.Default();
+        //public static IServiceCollection AddOneTable(this IServiceCollection serivces, Action<OneTableConfiguration> options)
+        //{
+        //    var config = OneTableConfiguration.Default();
 
-            options?.Invoke(config);
+        //    options?.Invoke(config);
 
-            AddOneTable(serivces, config);
+        //    AddOneTable(serivces, config);
 
-            return serivces;
-        }
+        //    return serivces;
+        //}
 
-        private static void AddOneTable(IServiceCollection serivces, OneTableConfiguration config)
-        {
-            // validate configuration
-            config.Validate();
+        //private static void AddOneTable(IServiceCollection serivces, OneTableConfiguration config)
+        //{
+        //    // validate configuration
+        //    config.Validate();
 
-            // register services
-            serivces.AddSingleton<IItemLookup>(sp =>
-            {
-                return new DynamoDbItemLookup(
-                    sp.GetRequiredService<IAmazonDynamoDB>(),
-                    new TableNameResolver(config)
-                );
-            });
-        }
+        //    // register services
+        //    serivces.AddSingleton<IItemLookup>(sp =>
+        //    {
+        //        return new DynamoDbItemLookup(
+        //            sp.GetRequiredService<IAmazonDynamoDB>(),
+        //            new TableNameResolver(config)
+        //        );
+        //    });
+        //}
     }
 }
