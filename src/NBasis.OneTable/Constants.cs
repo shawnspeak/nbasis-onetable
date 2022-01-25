@@ -9,6 +9,7 @@ namespace NBasis.OneTable
     internal static class Constants
     {
         internal const int DefaultGSIndexCount = 2;
+        internal const int MaxGSIndexCount = 20;
 
         internal static class KeyAttributeNames
         {

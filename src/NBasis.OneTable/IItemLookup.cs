@@ -1,29 +1,28 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
-using NBasis.OneTable.Annotations;
 using System.Linq.Expressions;
 
 namespace NBasis.OneTable
 {
-    public interface IItemLookup
+    public interface IItemLookup<TContext> where TContext : TableContext
     {
         Task<TItem> Find<TItem>(Expression<Func<TItem, bool>> keyPredicate) where TItem : class;
 
         Task<QueryResults<TItem>> Query<TItem>(Func<TItem, bool> predicate) where TItem : class;
     }
 
-    public class DynamoDbItemLookup : IItemLookup
+    public class DynamoDbItemLookup<TContext> : IItemLookup<TContext> where TContext : TableContext
     {
         readonly IAmazonDynamoDB _client;
-        readonly ITableNameResolver _tableNameResolver;
+        readonly TContext _context;
 
         public DynamoDbItemLookup(
-            IAmazonDynamoDB client, 
-            ITableNameResolver tableNameResolver
+            IAmazonDynamoDB client,
+            TContext context
         )
         {
             _client = client;
-            _tableNameResolver = tableNameResolver;
+            _context = context;
         }
 
         public async Task<TItem> Find<TItem>(Expression<Func<TItem, bool>> predicate) where TItem : class
@@ -36,7 +35,7 @@ namespace NBasis.OneTable
             // call get item
             var request = new GetItemRequest
             {
-                TableName = _tableNameResolver.GetTableName<TItem>(),
+                TableName = _context.TableName,
                 Key = keyItem
             };
 
@@ -56,7 +55,7 @@ namespace NBasis.OneTable
 
             var request = new QueryRequest
             {
-                TableName = _tableNameResolver.GetTableName<TItem>(),
+                TableName = _context.TableName,
             };
 
             var response = await _client.QueryAsync(request);
@@ -65,7 +64,7 @@ namespace NBasis.OneTable
         }
     }  
 
-    //// [OneTableItem( RecordType: "TYPE", Table: "TABLENAME")]
+    //// [OneTableItem( RecordType: "TYPE")]
     //// [Timestamp(Operation.Put | Operation.Update, "FIELDNAME")] // handled on the item, but not retrieve as a property
     //public class SomeItem
     //{

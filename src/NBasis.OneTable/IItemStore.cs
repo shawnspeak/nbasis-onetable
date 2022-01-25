@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace NBasis.OneTable
 {
-    public interface IItemStore
+    public interface IItemStore<TContext> where TContext : TableContext
     {
         Task<TItem> Put<TItem>(TItem item) where TItem : class;
 
@@ -15,18 +15,18 @@ namespace NBasis.OneTable
         Task Delete<TItem>(Expression<Func<TItem, bool>> keyPredicate) where TItem : class;
     }
 
-    public class DynamoDbItemStore : IItemStore
+    public class DynamoDbItemStore<TContext> : IItemStore<TContext> where TContext : TableContext
     {
         readonly IAmazonDynamoDB _client;
-        readonly ITableNameResolver _tableNameResolver;
+        readonly TContext _context;
 
         public DynamoDbItemStore(
             IAmazonDynamoDB client,
-            ITableNameResolver tableNameResolver
+            TContext context
         )
         {
             _client = client;
-            _tableNameResolver = tableNameResolver;
+            _context = context;
         }
 
         public Task Delete<TItem>(TItem item)
@@ -45,7 +45,7 @@ namespace NBasis.OneTable
 
             var request = new DeleteItemRequest
             {
-                TableName = _tableNameResolver.GetTableName<TItem>(),
+                TableName = _context.TableName,
                 Key = keyItem
             };
 

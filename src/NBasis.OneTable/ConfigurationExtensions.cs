@@ -1,51 +1,35 @@
-﻿using Amazon.DynamoDBv2;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace NBasis.OneTable
 {
     public static class ConfigurationExtensions
     {
-        public static IServiceCollection AddOneTable<TContext>(this IServiceCollection serivces, string tableName)
+        public static IServiceCollection AddOneTable<TContext>(this IServiceCollection services, string tableName)
+             where TContext : TableContext
         {
-            //var config = OneTableConfiguration.Default();
-            //config.Tables[tableName] = tableName;
+            // see if context is already registered
+            if (services.Any(s => s.ServiceType == typeof(TContext)))
+                throw new TableContextAlreadyAddedException();
 
-            //options?.Invoke(config);
+            // register context, table and items
+            services.AddSingleton<TContext>(sp =>
+            {
+                // create context
+                TContext ctx = Activator.CreateInstance<TContext>();
 
-            //AddOneTable(serivces, config);
+                // set table name
+                ctx.SetTableName(tableName);
 
-            return serivces;
-        }
+                // build/validate configuration
+                ctx.ValidateConfiguration();
 
-        //public static IServiceCollection AddOneTable(this IServiceCollection serivces, Action<OneTableConfiguration> options)
-        //{
-        //    var config = OneTableConfiguration.Default();
+                return ctx;
+            });
 
-        //    options?.Invoke(config);
-
-        //    AddOneTable(serivces, config);
-
-        //    return serivces;
-        //}
-
-        //private static void AddOneTable(IServiceCollection serivces, OneTableConfiguration config)
-        //{
-        //    // validate configuration
-        //    config.Validate();
-
-        //    // register services
-        //    serivces.AddSingleton<IItemLookup>(sp =>
-        //    {
-        //        return new DynamoDbItemLookup(
-        //            sp.GetRequiredService<IAmazonDynamoDB>(),
-        //            new TableNameResolver(config)
-        //        );
-        //    });
-        //}
+            services.AddSingleton<ITable<TContext>, DynamoDbTable<TContext>>();
+            services.AddSingleton<IItemLookup<TContext>, DynamoDbItemLookup<TContext>>();
+            services.AddSingleton<IItemStore<TContext>, DynamoDbItemStore<TContext>>();
+            return services;
+        }       
     }
 }

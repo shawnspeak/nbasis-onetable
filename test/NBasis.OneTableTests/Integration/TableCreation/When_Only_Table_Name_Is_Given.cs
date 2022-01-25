@@ -1,4 +1,5 @@
 ﻿using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
 using Microsoft.Extensions.DependencyInjection;
 using NBasis.OneTable;
 using System;
@@ -40,10 +41,14 @@ namespace NBasis.OneTableTests.Integration.TableCreation
                 Assert.Null(ex);
 
                 // see if table exists
-                var tables = await _fixture.DynamoDbClient.ListTablesAsync();
-                Assert.NotNull(tables);
-                Assert.True(tables.HttpStatusCode == System.Net.HttpStatusCode.OK);
-                Assert.Contains(_tableName, tables.TableNames);
+                var request = new DescribeTableRequest()
+                {
+                    TableName = _tableName,
+                };
+                var table = await _fixture.DynamoDbClient.DescribeTableAsync(request);
+                Assert.NotNull(table);
+                Assert.True(table.HttpStatusCode == System.Net.HttpStatusCode.OK);
+                Assert.Contains(_tableName, table.Table?.TableName);
             });
         }
     }
@@ -51,7 +56,6 @@ namespace NBasis.OneTableTests.Integration.TableCreation
     public class TestTableContext : TableContext
     {
         // config
-        // hooks
-        // item types?
+        // hooks        
     }
 }
