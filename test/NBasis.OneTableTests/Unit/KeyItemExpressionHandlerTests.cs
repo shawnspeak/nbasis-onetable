@@ -13,12 +13,21 @@ namespace NBasis.OneTableTests
         public string Sk { get; set; }
     }
 
+    public class TestContext : TableContext
+    {
+        public TestContext()
+        {
+            Configuration = TableConfiguration.Default();
+        }
+    }
+
     public class KeyItemExpressionHandlerTests
     {
         [Fact]
         public void PK_is_set_correctly()
         {
-            var expHandler = new KeyItemExpressionHandler<TestClass>();
+            var tableContext = new TestContext();
+            var expHandler = new KeyItemExpressionHandler<TestClass>(tableContext);
 
             var keyItem = expHandler.Handle(i => i.Pk == "12");
 
@@ -26,14 +35,15 @@ namespace NBasis.OneTableTests
 
             Assert.Single(keyItem);
 
-            Assert.True(keyItem.ContainsKey("PK"));
-            Assert.Equal("12", keyItem["PK"].S);
+            Assert.True(keyItem.ContainsKey(tableContext.Configuration.KeyAttributes.PKName));
+            Assert.Equal("12", keyItem[tableContext.Configuration.KeyAttributes.PKName].S);
         }
 
         [Fact]
         public void PK_and_SK_are_set_correctly()
         {
-            var expHandler = new KeyItemExpressionHandler<TestClass>();
+            var tableContext = new TestContext();
+            var expHandler = new KeyItemExpressionHandler<TestClass>(tableContext);
 
             var keyItem = expHandler.Handle(i => i.Pk == "12" && i.Sk == "321");
 
@@ -41,11 +51,11 @@ namespace NBasis.OneTableTests
 
             Assert.Equal(2, keyItem.Count);
 
-            Assert.True(keyItem.ContainsKey("PK"));
-            Assert.Equal("12", keyItem["PK"].S);
+            Assert.True(keyItem.ContainsKey(tableContext.Configuration.KeyAttributes.PKName));
+            Assert.Equal("12", keyItem[tableContext.Configuration.KeyAttributes.PKName].S);
 
-            Assert.True(keyItem.ContainsKey("SK"));
-            Assert.Equal("321", keyItem["SK"].S);
+            Assert.True(keyItem.ContainsKey(tableContext.Configuration.KeyAttributes.SKName));
+            Assert.Equal("321", keyItem[tableContext.Configuration.KeyAttributes.SKName].S);
         }
     }
 }

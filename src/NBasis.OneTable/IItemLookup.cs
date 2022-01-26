@@ -30,7 +30,7 @@ namespace NBasis.OneTable
             if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
             // get key
-            var keyItem = (new KeyItemExpressionHandler<TItem>().Handle(predicate));
+            var keyItem = (new KeyItemExpressionHandler<TItem>(_context).Handle(predicate));
 
             // call get item
             var request = new GetItemRequest

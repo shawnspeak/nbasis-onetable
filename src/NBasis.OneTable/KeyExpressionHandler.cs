@@ -15,6 +15,13 @@ namespace NBasis.OneTable
 
     public class KeyItemExpressionHandler<TItem> where TItem : class
     {
+        readonly TableContext _context;
+
+        public KeyItemExpressionHandler(TableContext context)
+        {
+            _context = context;
+        }
+
         public Dictionary<string, Amazon.DynamoDBv2.Model.AttributeValue> Handle(Expression<Func<TItem, bool>> predicate)
         {
             var keyItem = new Dictionary<string, AttributeValue>();
@@ -48,7 +55,7 @@ namespace NBasis.OneTable
                             {
                                 if (rightNode.Value is string)
                                 {
-                                    keyItem["PK"] = new AttributeValue(rightNode.Value.ToString());
+                                    keyItem[_context.Configuration.KeyAttributes.PKName] = new AttributeValue(rightNode.Value.ToString());
                                 }
                             }
                         }

@@ -41,7 +41,7 @@ namespace NBasis.OneTable
             if (keyPredicate == null) throw new ArgumentNullException(nameof(keyPredicate));
 
             // get key
-            var keyItem = (new KeyItemExpressionHandler<TItem>().Handle(keyPredicate));
+            var keyItem = (new KeyItemExpressionHandler<TItem>(_context).Handle(keyPredicate));
 
             var request = new DeleteItemRequest
             {
