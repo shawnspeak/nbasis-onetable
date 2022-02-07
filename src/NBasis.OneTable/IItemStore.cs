@@ -1,5 +1,7 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
+using NBasis.OneTable.Attributization;
+using NBasis.OneTable.Validation;
 using System.Linq.Expressions;
 
 namespace NBasis.OneTable
@@ -8,9 +10,9 @@ namespace NBasis.OneTable
     {
         Task<TItem> Put<TItem>(TItem item) where TItem : class;
 
-        Task<TItem> Update<TItem>(Expression<Func<TItem, bool>> keyPredicate, TItem item);
+        Task<TItem> Update<TItem>(TItem item) where TItem : class;
 
-        Task Delete<TItem>(TItem item);
+        Task Delete<TItem>(TItem item) where TItem : class;
 
         Task Delete<TItem>(Expression<Func<TItem, bool>> keyPredicate) where TItem : class;
     }
@@ -29,24 +31,39 @@ namespace NBasis.OneTable
             _context = context;
         }
 
-        public Task Delete<TItem>(TItem item)
+        public async Task Delete<TItem>(TItem item) where TItem : class
         {
             if (item == null) throw new ArgumentNullException(nameof(item));
 
-            throw new NotImplementedException();
+            // validate item
+            new ItemValidator<TItem>(_context).ValidateKeys(item);
+
+            // get the key from the item
+            var itemKey = (new ItemKeyHandler<TItem>(_context)).BuildKey(item);
+
+            var request = new DeleteItemRequest
+            {
+                TableName = _context.TableName,
+                Key = itemKey
+            };
+
+            var response = await _client.DeleteItemAsync(request);
         }
 
         public async Task Delete<TItem>(Expression<Func<TItem, bool>> keyPredicate) where TItem : class
         {
             if (keyPredicate == null) throw new ArgumentNullException(nameof(keyPredicate));
 
+            // validate item type
+            new ItemTypeValidator<TItem>(_context).Validate();
+
             // get key
-            var keyItem = (new KeyItemExpressionHandler<TItem>(_context).Handle(keyPredicate));
+            var itemKey = new ItemKeyExpressionHandler<TItem>(_context).Handle(keyPredicate);
 
             var request = new DeleteItemRequest
             {
                 TableName = _context.TableName,
-                Key = keyItem
+                Key = itemKey
             };
 
             var response = await _client.DeleteItemAsync(request);
@@ -56,12 +73,43 @@ namespace NBasis.OneTable
         {
             if (item == null) throw new ArgumentNullException(nameof(item));
 
+            // validate item
+            new ItemValidator<TItem>(_context).Validate(item);
+
+            // attributize item
+            var attributes = new ItemAttributizer<TItem>(_context).Attributize(item);
+
+            var request = new PutItemRequest
+            {
+                TableName = _context.TableName,
+                Item = attributes
+            };
+
+            var response = await _client.PutItemAsync(request);
+
             return item;
         }
 
-        public async Task<TItem> Update<TItem>(Expression<Func<TItem, bool>> keyPredicate, TItem item)
+        public async Task<TItem> Update<TItem>(TItem item) where TItem : class
         {
-            throw new NotImplementedException();
+            if (item == null) throw new ArgumentNullException(nameof(item));
+
+            // validate item
+            new ItemValidator<TItem>(_context).Validate(item);
+
+            // get the key from the item
+            var itemKey = (new ItemKeyHandler<TItem>(_context)).BuildKey(item);
+
+            var request = new UpdateItemRequest
+            {
+                TableName = _context.TableName,
+                Key = itemKey,
+                ReturnValues = ReturnValue.ALL_NEW,
+            };
+
+            var response = await _client.UpdateItemAsync(request);
+
+            return item;
         }
     }
 }

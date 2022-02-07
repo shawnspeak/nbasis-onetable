@@ -1,5 +1,7 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
+using NBasis.OneTable.Attributization;
+using NBasis.OneTable.Validation;
 using System.Linq.Expressions;
 
 namespace NBasis.OneTable
@@ -29,33 +31,41 @@ namespace NBasis.OneTable
         {
             if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
+            // validate item type
+            new ItemTypeValidator<TItem>(_context).Validate();
+
             // get key
-            var keyItem = (new KeyItemExpressionHandler<TItem>(_context).Handle(predicate));
+            var keyItem = new ItemKeyExpressionHandler<TItem>(_context).Handle(predicate);
 
             // call get item
             var request = new GetItemRequest
             {
                 TableName = _context.TableName,
-                Key = keyItem
+                Key = keyItem,
+                ProjectionExpression = new ItemProjectionHandler<TItem>(_context).Build()
             };
 
             var response = await _client.GetItemAsync(request);
 
             if (response.IsItemSet)
-                return ItemHydrator.Hydrate<TItem>(response.Item);
+                return (new ItemAttributizer<TItem>(_context)).Deattributize(response.Item);
 
-            return default(TItem);
+            return default;
         }
 
         public async Task<QueryResults<TItem>> Query<TItem>(Func<TItem, bool> predicate) where TItem : class
         {
             if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
+            // validate item type
+            new ItemTypeValidator<TItem>(_context).Validate();
+
             // build query from predicate
 
             var request = new QueryRequest
             {
                 TableName = _context.TableName,
+                ProjectionExpression = (new ItemProjectionHandler<TItem>(_context)).Build()
             };
 
             var response = await _client.QueryAsync(request);
@@ -84,31 +94,5 @@ namespace NBasis.OneTable
 
     //    // [Timestamp(Operation.Put | Operation.Update, "FIELDNAME")] // exposes the timestamp via property
     //    public DateTimeOffset TS { get; set; }
-    //}
-
-
-    //public class QueryHandler<TResult>
-    //{
-    //    public async Task<TResult> Handle(IItemLookup lookup)
-    //    {
-    //        // set keys.. key checks are done based on 
-    //        var item = await lookup.Find<SomeItem>(i => i.SomeId == "" && i.Email == "", FindOptions);
-
-
-    //        var items = await lookup.Query<SomeItem>(i => i.SomeId == "" && i.Email == "", QueryOptions);
-    //    }
-    //}
-
-    //public class CommandHandler<TResult>
-    //{
-    //    public async Task<TResult> Handle(IItemStore store)
-    //    {
-    //        // set keys.. key checks are done based on 
-    //        await store.Delete<SomeItem>(i => i.SomeId == "" && i.Email == "", DeleteOptions);
-
-    //        //await store.Delete<SomeItem>(item, DeleteOptions);
-
-    //        //await store.Put<SomeItem>(put, PutOptions);
-    //    }
     //}
 }

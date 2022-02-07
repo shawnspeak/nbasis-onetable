@@ -1,22 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NBasis.OneTable.Attributization;
 
 namespace NBasis.OneTable.Annotations
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class AttributeAttribute : Attribute
     {
-        public string? FieldName { get; private set; }
+        public string FieldName { get; private set; }
 
-        public ItemAttributeType AttributeType { get; private set; }
+        public Type Converter { get; private set; }
 
-        public AttributeAttribute(string? fieldName = null, ItemAttributeType attributeType = ItemAttributeType.Auto)
+        public AttributeAttribute(
+            string fieldName = null, 
+            Type coverter = null)
         {
             FieldName = fieldName;
-            AttributeType = attributeType;
+            Converter = coverter;
         }
     }
 }

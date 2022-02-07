@@ -14,13 +14,60 @@ namespace NBasis.OneTable
      * - If TItem has an SK, then SK must always be specified
      */
 
-    public class KeyItemExpressionHandler<TItem> where TItem : class
+    public class ItemKeyExpressionHandler<TItem> where TItem : class
     {
         readonly TableContext _context;
 
-        public KeyItemExpressionHandler(TableContext context)
+        public ItemKeyExpressionHandler(TableContext context)
         {
             _context = context;
+        }
+
+        public static object GetValue(MemberInfo memberInfo, object forObject)
+        {
+            return memberInfo.MemberType switch
+            {
+                MemberTypes.Field => ((FieldInfo)memberInfo).GetValue(forObject),
+                MemberTypes.Property => ((PropertyInfo)memberInfo).GetValue(forObject),
+                _ => throw new NotImplementedException(),
+            };
+        }
+
+        public static object ResolveValue(Expression expression)
+        {
+            if (expression is System.Linq.Expressions.MemberExpression member)
+            {
+                // if next expression is contant, then return it's value
+                if (member.Expression is System.Linq.Expressions.ConstantExpression valueExpression)
+                {
+                    return GetValue(member.Member, valueExpression.Value);
+                }
+                else
+                {
+                    var value = ResolveValue(member.Expression);
+                    return GetValue(member.Member, value);
+                }
+            }
+            return null;
+        }
+
+        private string ResolveRightValue(Expression right)
+        {
+            if (right.NodeType == ExpressionType.Constant)
+            {
+                if (right is System.Linq.Expressions.ConstantExpression rightNode)
+                {
+                    return rightNode.Value.ToString();
+                }
+            }
+            else if (right.NodeType == ExpressionType.MemberAccess)
+            {
+                if (right is System.Linq.Expressions.MemberExpression rightNode)
+                {
+                    return ResolveValue(right).ToString();                         
+                }
+            }
+            return null;
         }
 
         private void FindKeys(BinaryExpression operation, FoundKeys foundKeys)
@@ -30,9 +77,11 @@ namespace NBasis.OneTable
             
             if ((left != null) && (left is BinaryExpression leftBi))
                 FindKeys(leftBi, foundKeys);
-            else if ((right != null) && (right is BinaryExpression rightBi))
+
+            if ((right != null) && (right is BinaryExpression rightBi))
                 FindKeys(rightBi, foundKeys);
-            else if ((operation.NodeType == ExpressionType.Equal) &&
+
+            if ((operation.NodeType == ExpressionType.Equal) &&
                      (left != null) && 
                      (right != null))
             {
@@ -40,20 +89,28 @@ namespace NBasis.OneTable
                 {
                     if (left is System.Linq.Expressions.MemberExpression leftNode)
                     {
-                        // must contain a key attribute
-                        if (leftNode.Member.CustomAttributes.Any(ca => ca.AttributeType == typeof(PKAttribute)))
+                        // then right must contain a value
+
+                        // resolve right value
+                        string rightValue = ResolveRightValue(right);
+
+                        // apply the value to the correct key if specified on left
+                        if (rightValue != null)
                         {
-                            // then right must contain a value
-                            if (right.NodeType == ExpressionType.Constant)
+                            var pkAttribute = leftNode.Member.CustomAttributes.FirstOrDefault(ca => ca.AttributeType == typeof(PKAttribute));
+                            if (pkAttribute != null)
                             {
-                                var rightNode = right as System.Linq.Expressions.ConstantExpression;
-                                if (rightNode != null)
-                                {
-                                    if (rightNode.Value is string)
-                                    {
-                                        // keyItem[_context.Configuration.KeyAttributes.PKName] = new AttributeValue(rightNode.Value.ToString());
-                                    }
-                                }
+                                foundKeys.PKMember = leftNode.Member;
+                                foundKeys.PKPrefix = pkAttribute.ConstructorArguments?.FirstOrDefault().Value?.ToString();
+                                foundKeys.PKValue = rightValue;
+                            }
+
+                            var skAttribute = leftNode.Member.CustomAttributes.FirstOrDefault(ca => ca.AttributeType == typeof(SKAttribute));
+                            if (skAttribute != null)
+                            {
+                                foundKeys.SKMember = leftNode.Member;
+                                foundKeys.SKPrefix = skAttribute.ConstructorArguments?.FirstOrDefault().Value?.ToString(); 
+                                foundKeys.SKValue = rightValue;
                             }
                         }
                     }
@@ -65,59 +122,52 @@ namespace NBasis.OneTable
         {
             public MemberInfo PKMember { get; set; }
 
-            public AttributeValue PKValue { get; set; }
+            public string PKValue { get; set; }
+
+            public string PKPrefix { get; set; }
 
             public MemberInfo SKMember { get; set; }
 
-            public AttributeValue SKValue { get; set; }
+            public string SKValue { get; set; }
+
+            public string SKPrefix { get; set; }
         }
 
         public Dictionary<string, Amazon.DynamoDBv2.Model.AttributeValue> Handle(Expression<Func<TItem, bool>> predicate)
         {
-            var keyItem = new Dictionary<string, AttributeValue>();
-
             if (predicate.Parameters.Count != 1)
                 throw new ArgumentException("Predicate must contain only one parameter");
 
-            var param = predicate.Parameters[0] as ParameterExpression;
-            var operation = predicate.Body as BinaryExpression;
-
-            if (operation == null)
+            if (predicate.Body is not BinaryExpression operation)
                 throw new ArgumentException("Must be a binary expression");
-
 
             // recurse expression tree and look for PK and SK
             var foundKeys = new FoundKeys();
             FindKeys(operation as BinaryExpression, foundKeys);
 
-            //var left = operation.Left;
-            //var right = operation.Right;
-            
-            //if (left.NodeType == ExpressionType.MemberAccess)
-            //{
-            //    var leftNode = left as System.Linq.Expressions.MemberExpression;
-            //    if (leftNode != null)
-            //    {
-            //        // must contain a key attribute
-            //        if (leftNode.Member.CustomAttributes.Any(ca => ca.AttributeType == typeof(PKAttribute)))
-            //        {
-            //            // then right must contain a value
+            // validation
 
-            //            if (right.NodeType == ExpressionType.Constant)
-            //            {
-            //                var rightNode = right as System.Linq.Expressions.ConstantExpression;
-            //                if (rightNode != null)
-            //                {
-            //                    if (rightNode.Value is string)
-            //                    {
-            //                        keyItem[_context.Configuration.KeyAttributes.PKName] = new AttributeValue(rightNode.Value.ToString());
-            //                    }
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
+            // will always have a PK
 
+            // build key item dictionary   
+            var keyItem = new Dictionary<string, AttributeValue>();
+
+            var getAttribute = (string val, string prefix) =>
+            {
+                if (prefix != null)
+                {
+                    return new AttributeValue(prefix + "#" + val);
+                }
+                return new AttributeValue(val);
+            };
+            if (foundKeys.PKMember != null)
+            {
+                keyItem[_context.Configuration.KeyAttributes.PKName] = getAttribute(foundKeys.PKValue, foundKeys.PKPrefix);
+            }
+            if (foundKeys.SKMember != null)
+            {
+                keyItem[_context.Configuration.KeyAttributes.SKName] = getAttribute(foundKeys.SKValue, foundKeys.SKPrefix);
+            }
             return keyItem;
         }
     }

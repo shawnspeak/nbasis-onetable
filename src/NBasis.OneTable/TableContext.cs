@@ -1,4 +1,6 @@
-﻿namespace NBasis.OneTable
+﻿using NBasis.OneTable.Attributization;
+
+namespace NBasis.OneTable
 {
     public abstract class TableContext
     {
@@ -6,12 +8,18 @@
 
         public TableConfiguration Configuration { get; internal set; }
 
+        public AttributizerSettings AttributizerSettings { get; internal set; }
+
         internal void SetTableName(string tableName)
         {
             this.TableName = tableName;
         }
 
         public virtual void OnTableConfiguration(TableConfiguration config)
+        {
+        }
+
+        public virtual void OnAttributizerSetup(AttributizerSettings settings)
         {
         }
 
@@ -33,6 +41,17 @@
 
                 // construct final config
                 Configuration = new TableConfiguration(config);
+            }
+
+            // setup attributizer
+            if (AttributizerSettings == null)
+            {
+                var settings = AttributizerSettings.Default();
+
+                // allow overrides
+                OnAttributizerSetup(settings);
+
+                AttributizerSettings = settings;
             }
 
             // validate config

@@ -9,9 +9,8 @@ namespace NBasis.OneTable.Annotations
     [AttributeUsage(AttributeTargets.Class)]
     public class RecordTypeAttribute : Attribute
     {
-        public RecordTypeAttribute(string recordType, string? fieldNameOverride = null)
+        public RecordTypeAttribute(string recordType, string fieldNameOverride = null)
         {
-
         }
     }
 }

@@ -1,79 +1,102 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NBasis.OneTable.Annotations
+﻿namespace NBasis.OneTable.Annotations
 {
     public abstract class KeyAttribute : Attribute
     {
-        public string? Prefix { get; private set; }
+        public string Prefix { get; private set; }
 
-        public KeyAttribute(string? prefix = null)
+        public KeyAttribute(string prefix = null)
         {
             Prefix = prefix;
         }
+
+        internal abstract string GetFieldName(TableContext context);
     }
 
-    [AttributeUsage(AttributeTargets.Property)]
-    public class PKAttribute : KeyAttribute
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    public sealed class PKAttribute : KeyAttribute
     {
-        public PKAttribute(string? prefix = null) : base(prefix)
+        public PKAttribute(string prefix = null) : base(prefix)
         {
+        }
+
+        internal override string GetFieldName(TableContext context)
+        {
+            return context.Configuration.KeyAttributes.PKName;
         }
     }
 
-    [AttributeUsage(AttributeTargets.Property)]
-    public class SKAttribute : KeyAttribute
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    public sealed class SKAttribute : KeyAttribute
     {
-        public SKAttribute(string? prefix = null) : base(prefix)
+        public SKAttribute(string prefix = null) : base(prefix)
         {
+        }
+
+        internal override string GetFieldName(TableContext context)
+        {
+            return context.Configuration.KeyAttributes.SKName;
         }
     }
 
     public abstract class GSIKeyAttribute : KeyAttribute
     {
-        public string? Prefix { get; private set; }
-
         public int IndexNumber { get; private set; }
 
-        public GSIKeyAttribute(int indexNumber, string? prefix = null) :    base(prefix)
+        public GSIKeyAttribute(int indexNumber, string prefix = null) : base(prefix)
         {
             IndexNumber = indexNumber;
         }
     }
 
 
-    [AttributeUsage(AttributeTargets.Property)]
-    public class GPK1Attribute : GSIKeyAttribute
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    public sealed class GPK1Attribute : GSIKeyAttribute
     {
-        public GPK1Attribute(string? prefix = null) : base(1, prefix)
+        public GPK1Attribute(string prefix = null) : base(1, prefix)
         {
+        }
+
+        internal override string GetFieldName(TableContext context)
+        {
+            return string.Format(context.Configuration.KeyAttributes.GPKPrefix, IndexNumber);
         }
     }
 
-    [AttributeUsage(AttributeTargets.Property)]
-    public class GSK1Attribute : GSIKeyAttribute
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    public sealed class GSK1Attribute : GSIKeyAttribute
     {
-        public GSK1Attribute(string? prefix = null) : base(1, prefix)
+        public GSK1Attribute(string prefix = null) : base(1, prefix)
         {
+        }
+
+        internal override string GetFieldName(TableContext context)
+        {
+            return string.Format(context.Configuration.KeyAttributes.GSKPrefix, IndexNumber);
         }
     }
 
-    [AttributeUsage(AttributeTargets.Property)]
-    public class GPK2Attribute : GSIKeyAttribute
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    public sealed class GPK2Attribute : GSIKeyAttribute
     {
-        public GPK2Attribute(string? prefix = null) : base(2, prefix)
+        public GPK2Attribute(string prefix = null) : base(2, prefix)
         {
+        }
+        internal override string GetFieldName(TableContext context)
+        {
+            return string.Format(context.Configuration.KeyAttributes.GPKPrefix, IndexNumber);
         }
     }
 
-    [AttributeUsage(AttributeTargets.Property)]
-    public class GSK2Attribute : GSIKeyAttribute
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    public sealed class GSK2Attribute : GSIKeyAttribute
     {
-        public GSK2Attribute(string? prefix = null) : base(2, prefix)
+        public GSK2Attribute(string prefix = null) : base(2, prefix)
         {
+        }
+
+        internal override string GetFieldName(TableContext context)
+        {
+            return string.Format(context.Configuration.KeyAttributes.GSKPrefix, IndexNumber);
         }
     }
 }
