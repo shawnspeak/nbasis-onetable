@@ -3,6 +3,15 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Product>NBasis.OneTable</Product>
+    <Title>NBasis.OneTable</Title>
+    <RootNamespace>NBasis.OneTable</RootNamespace>
+    <AssemblyName>NBasis.OneTable</AssemblyName>
+    <Version>0.0.0</Version>
+    <PackageId>NBasis.OneTable</PackageId>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/shawnspeak/nbasis-onetable</RepositoryUrl>
+    <Authors>Shawn Beach</Authors>
   </PropertyGroup>
 
   <ItemGroup>
