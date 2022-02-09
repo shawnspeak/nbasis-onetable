@@ -24,4 +24,8 @@
     <ProjectReference Include="..\..\src\NBasis.OneTable\NBasis.OneTable.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Integration\DeleteItem\" />
+  </ItemGroup>
+
 </Project>

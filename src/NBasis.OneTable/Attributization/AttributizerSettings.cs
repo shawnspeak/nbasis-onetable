@@ -17,6 +17,10 @@ namespace NBasis.OneTable.Attributization
             };
 
             add(BuiltInConverters.BooleanConverter);
+            add(BuiltInConverters.IntConverter);            
+            add(BuiltInConverters.GuidConverter);
+            add(BuiltInConverters.LongIntConverter);
+            add(BuiltInConverters.ShortIntConverter);
             add(BuiltInConverters.StringConverter);
 
             _builtInConverters = converters;
