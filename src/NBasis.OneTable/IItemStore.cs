@@ -47,7 +47,7 @@ namespace NBasis.OneTable
                 Key = itemKey
             };
 
-            var response = await _client.DeleteItemAsync(request);
+            await _client.DeleteItemAsync(request);
         }
 
         public async Task Delete<TItem>(Expression<Func<TItem, bool>> keyPredicate) where TItem : class
@@ -66,7 +66,7 @@ namespace NBasis.OneTable
                 Key = itemKey
             };
 
-            var response = await _client.DeleteItemAsync(request);
+            await _client.DeleteItemAsync(request);
         }
 
         public async Task<TItem> Put<TItem>(TItem item) where TItem : class
@@ -85,7 +85,7 @@ namespace NBasis.OneTable
                 Item = attributes
             };
 
-            var response = await _client.PutItemAsync(request);
+            await _client.PutItemAsync(request);
 
             return item;
         }
@@ -107,7 +107,7 @@ namespace NBasis.OneTable
                 ReturnValues = ReturnValue.ALL_NEW,
             };
 
-            var response = await _client.UpdateItemAsync(request);
+            await _client.UpdateItemAsync(request);
 
             return item;
         }

@@ -68,7 +68,7 @@ namespace NBasis.OneTable
                 ProjectionExpression = (new ItemProjectionHandler<TItem>(_context)).Build()
             };
 
-            var response = await _client.QueryAsync(request);
+            await _client.QueryAsync(request);
 
             return null;
         }

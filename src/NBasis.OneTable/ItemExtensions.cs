@@ -20,7 +20,9 @@ namespace NBasis.OneTable
             }
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         internal static void EnumerateItemAttributes<TItem>(this TItem item, Action<PropertyInfo, AttributeAttribute> action)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             // deal with every property on item
             typeof(TItem).EnumerateItemAttributes(action);
@@ -40,7 +42,9 @@ namespace NBasis.OneTable
             }
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         internal static void EnumerateItemKeys<TItem>(this TItem item, Action<PropertyInfo, KeyAttribute> action)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             typeof(TItem).EnumerateItemKeys(action);
         }

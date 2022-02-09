@@ -1,36 +1,9 @@
 using NBasis.OneTable;
-using NBasis.OneTable.Annotations;
+using System;
 using Xunit;
 
-namespace NBasis.OneTableTests
+namespace NBasis.OneTableTests.Unit.Keys
 {
-    public class TestClass
-    {
-        [PK]
-        public string Pk { get; set; }
-
-        [SK]
-        public string Sk { get; set; }
-    }
-
-    public class TestClassWithPrefix
-    {
-        [PK("PRF")]
-        public string Pk { get; set; }
-
-        [SK("USR")]
-        public string Sk { get; set; }
-    }
-
-    public class TestContext : TableContext
-    {
-        public TestContext()
-        {
-            Configuration = TableConfiguration.Default();
-            AttributizerSettings = NBasis.OneTable.Attributization.AttributizerSettings.Default();
-        }
-    }
-
     public class ItemKeyExpressionHandlerTests
     {
         [Fact]
@@ -45,7 +18,6 @@ namespace NBasis.OneTableTests
 
             Assert.Single(keyItem);
 
-            Assert.True(keyItem.ContainsKey(tableContext.Configuration.KeyAttributes.PKName));
             Assert.Equal("12", keyItem[tableContext.Configuration.KeyAttributes.PKName].S);
         }
 
@@ -61,10 +33,7 @@ namespace NBasis.OneTableTests
 
             Assert.Equal(2, keyItem.Count);
 
-            Assert.True(keyItem.ContainsKey(tableContext.Configuration.KeyAttributes.PKName));
             Assert.Equal("12", keyItem[tableContext.Configuration.KeyAttributes.PKName].S);
-
-            Assert.True(keyItem.ContainsKey(tableContext.Configuration.KeyAttributes.SKName));
             Assert.Equal("321", keyItem[tableContext.Configuration.KeyAttributes.SKName].S);
         }
 
@@ -83,10 +52,7 @@ namespace NBasis.OneTableTests
 
             Assert.Equal(2, keyItem.Count);
 
-            Assert.True(keyItem.ContainsKey(tableContext.Configuration.KeyAttributes.PKName));
             Assert.Equal(pkVariable, keyItem[tableContext.Configuration.KeyAttributes.PKName].S);
-
-            Assert.True(keyItem.ContainsKey(tableContext.Configuration.KeyAttributes.SKName));
             Assert.Equal(skVariable, keyItem[tableContext.Configuration.KeyAttributes.SKName].S);
         }
 
@@ -102,10 +68,8 @@ namespace NBasis.OneTableTests
 
             Assert.Equal(2, keyItem.Count);
 
-            Assert.True(keyItem.ContainsKey(tableContext.Configuration.KeyAttributes.PKName));
-            Assert.Equal("PRF#12", keyItem[tableContext.Configuration.KeyAttributes.PKName].S);
 
-            Assert.True(keyItem.ContainsKey(tableContext.Configuration.KeyAttributes.SKName));
+            Assert.Equal("PRF#12", keyItem[tableContext.Configuration.KeyAttributes.PKName].S);
             Assert.Equal("USR#321", keyItem[tableContext.Configuration.KeyAttributes.SKName].S);
         }
 
@@ -127,11 +91,27 @@ namespace NBasis.OneTableTests
 
             Assert.Equal(2, keyItem.Count);
 
-            Assert.True(keyItem.ContainsKey(tableContext.Configuration.KeyAttributes.PKName));
             Assert.Equal(testClass.Pk, keyItem[tableContext.Configuration.KeyAttributes.PKName].S);
-
-            Assert.True(keyItem.ContainsKey(tableContext.Configuration.KeyAttributes.SKName));
             Assert.Equal(testClass.Sk, keyItem[tableContext.Configuration.KeyAttributes.SKName].S);
+        }
+
+        [Fact]
+        public void PK_and_SK_are_set_correctly_with_non_string()
+        {
+            Guid pkVariable = Guid.NewGuid();
+            int skVariable = Guid.NewGuid().GetHashCode();
+
+            var tableContext = new TestContext();
+            var expHandler = new ItemKeyExpressionHandler<TestClassWithNonStringTypes>(tableContext);
+
+            var keyItem = expHandler.Handle(i => i.Pk == pkVariable && i.Sk == skVariable);
+
+            Assert.NotNull(keyItem);
+
+            Assert.Equal(2, keyItem.Count);
+
+            Assert.Equal(pkVariable.ToString(), keyItem[tableContext.Configuration.KeyAttributes.PKName].S);
+            Assert.Equal(skVariable.ToString(), keyItem[tableContext.Configuration.KeyAttributes.SKName].N);
         }
     }
 }

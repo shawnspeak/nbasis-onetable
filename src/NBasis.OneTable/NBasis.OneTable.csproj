@@ -9,13 +9,14 @@
     <AssemblyName>NBasis.OneTable</AssemblyName>
     <Version>0.0.0</Version>
     <PackageId>NBasis.OneTable</PackageId>
+    <Description>An opinionated DynamoDB OneTable library</Description>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/shawnspeak/nbasis-onetable</RepositoryUrl>
     <Authors>Shawn Beach</Authors>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.0.88" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="[3.7,4.0)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
   </ItemGroup>
 

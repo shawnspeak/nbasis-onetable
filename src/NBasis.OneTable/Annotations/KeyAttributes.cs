@@ -4,9 +4,15 @@
     {
         public string Prefix { get; private set; }
 
-        public KeyAttribute(string prefix = null)
+        public Type Converter { get; private set; }
+
+        public KeyAttribute(
+            string prefix = null,
+            Type coverter = null
+        )
         {
             Prefix = prefix;
+            Converter = coverter;
         }
 
         internal abstract string GetFieldName(TableContext context);
@@ -42,7 +48,12 @@
     {
         public int IndexNumber { get; private set; }
 
-        public GSIKeyAttribute(int indexNumber, string prefix = null) : base(prefix)
+        public GSIKeyAttribute
+        (
+            int indexNumber, 
+            string prefix = null,
+            Type converter = null
+        ) : base(prefix, converter)
         {
             IndexNumber = indexNumber;
         }

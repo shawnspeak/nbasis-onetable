@@ -1,5 +1,4 @@
 ﻿using Amazon.DynamoDBv2.Model;
-using NBasis.OneTable.Annotations;
 
 namespace NBasis.OneTable
 {
@@ -17,7 +16,7 @@ namespace NBasis.OneTable
             var keyItem = new Dictionary<string, AttributeValue>();
 
             // deal with every property and key on item
-            typeof(TItem).EnumerateItemKeys((property, attr) =>
+            typeof(TItem).EnumerateItemKeys((property, keyAttr) =>
             {
                 // get value fom item
                 object value = property.GetValue(item);
@@ -27,14 +26,27 @@ namespace NBasis.OneTable
 
                 if (converter.TryWriteAsObject(value, out AttributeValue attrValue))
                 {
-                    string fieldName = attr.GetFieldName(_context);
+                    string fieldName = keyAttr.GetFieldName(_context);
 
-                    if (attr.Prefix != null)
+                    if (keyAttr.Prefix != null)
                     {
-                        attrValue.S = attr.Prefix + "#" + attrValue.S;
-                    }
+                        // attribute must be string regardless of attribute type
 
-                    keyItem[fieldName] = attrValue;
+                        // we support string or number types
+                        string finalValue = attrValue.S;
+                        if (attrValue.N != null)
+                            finalValue = attrValue.N;
+
+                        keyItem[fieldName] = new AttributeValue
+                        {
+                            S = keyAttr.Prefix + "#" + finalValue
+                        };
+                    } 
+                    else
+                    {
+                        // key is what the converter sends back
+                        keyItem[fieldName] = attrValue;
+                    }
                 }
             });
 

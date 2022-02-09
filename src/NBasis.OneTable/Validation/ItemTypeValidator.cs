@@ -19,6 +19,8 @@ namespace NBasis.OneTable.Validation
             // must have a PK
             // PK must only been listed once
             // GS index can't exceed configured count
+            // all keys must be scalar
+            // keys with prefix must be asString
 
             bool pkFound = false;
             typeof(TItem).EnumerateItemKeys((property, attr) =>

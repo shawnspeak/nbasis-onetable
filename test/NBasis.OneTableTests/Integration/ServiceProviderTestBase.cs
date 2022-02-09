@@ -1,8 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace NBasis.OneTableTests.Integration
@@ -30,10 +27,7 @@ namespace NBasis.OneTableTests.Integration
         {
             if (_provider == null)
                 throw new Exception("Given has not been called");
-            if (when == null)
-                throw new ArgumentNullException(nameof(when));
-
-            _when = when;
+            _when = when ?? throw new ArgumentNullException(nameof(when));
             if (_when == null)
                 throw new Exception("No when was returned");
         }
@@ -59,7 +53,23 @@ namespace NBasis.OneTableTests.Integration
 
         public void Dispose()
         {
-            _provider = null;
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private bool disposed = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    _provider = null;
+                }
+
+                disposed = true;
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Amazon.DynamoDBv2.Model;
 using NBasis.OneTable.Annotations;
+using NBasis.OneTable.Exceptions;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -51,21 +52,18 @@ namespace NBasis.OneTable
             return null;
         }
 
-        private string ResolveRightValue(Expression right)
+        private static object ResolveRightValue(Expression right)
         {
             if (right.NodeType == ExpressionType.Constant)
             {
                 if (right is System.Linq.Expressions.ConstantExpression rightNode)
                 {
-                    return rightNode.Value.ToString();
+                    return rightNode.Value;
                 }
             }
             else if (right.NodeType == ExpressionType.MemberAccess)
-            {
-                if (right is System.Linq.Expressions.MemberExpression rightNode)
-                {
-                    return ResolveValue(right).ToString();                         
-                }
+            {   
+                return ResolveValue(right);                
             }
             return null;
         }
@@ -92,14 +90,14 @@ namespace NBasis.OneTable
                         // then right must contain a value
 
                         // resolve right value
-                        string rightValue = ResolveRightValue(right);
+                        object rightValue = ResolveRightValue(right);
 
                         // apply the value to the correct key if specified on left
                         if (rightValue != null)
                         {
                             var pkAttribute = leftNode.Member.CustomAttributes.FirstOrDefault(ca => ca.AttributeType == typeof(PKAttribute));
                             if (pkAttribute != null)
-                            {
+                            {   
                                 foundKeys.PKMember = leftNode.Member;
                                 foundKeys.PKPrefix = pkAttribute.ConstructorArguments?.FirstOrDefault().Value?.ToString();
                                 foundKeys.PKValue = rightValue;
@@ -122,13 +120,13 @@ namespace NBasis.OneTable
         {
             public MemberInfo PKMember { get; set; }
 
-            public string PKValue { get; set; }
+            public object PKValue { get; set; }
 
             public string PKPrefix { get; set; }
 
             public MemberInfo SKMember { get; set; }
 
-            public string SKValue { get; set; }
+            public object SKValue { get; set; }
 
             public string SKPrefix { get; set; }
         }
@@ -152,21 +150,42 @@ namespace NBasis.OneTable
             // build key item dictionary   
             var keyItem = new Dictionary<string, AttributeValue>();
 
-            var getAttribute = (string val, string prefix) =>
+            var getAttribute = (MemberInfo member, object val, string prefix) =>
             {
-                if (prefix != null)
+                var converter = _context.AttributizerSettings.GetConverter(((PropertyInfo)member).PropertyType);
+
+                if (converter.TryWriteAsObject(val, out AttributeValue attrValue))
                 {
-                    return new AttributeValue(prefix + "#" + val);
+                    if (prefix != null)
+                    {
+                        // attribute must be string regardless of attribute type
+
+                        // we support string or number types
+                        string finalValue = attrValue.S;
+                        if (attrValue.N != null)
+                            finalValue = attrValue.N;
+
+                        return new AttributeValue
+                        {
+                            S = prefix + "#" + finalValue
+                        };
+                    }
+                    else
+                    {
+                        // key is what the converter sends back
+                        return attrValue;
+                    }
                 }
-                return new AttributeValue(val);
+
+                throw new UnableToWriteAttributeValueException();
             };
             if (foundKeys.PKMember != null)
             {
-                keyItem[_context.Configuration.KeyAttributes.PKName] = getAttribute(foundKeys.PKValue, foundKeys.PKPrefix);
+                keyItem[_context.Configuration.KeyAttributes.PKName] = getAttribute(foundKeys.PKMember, foundKeys.PKValue, foundKeys.PKPrefix);
             }
             if (foundKeys.SKMember != null)
             {
-                keyItem[_context.Configuration.KeyAttributes.SKName] = getAttribute(foundKeys.SKValue, foundKeys.SKPrefix);
+                keyItem[_context.Configuration.KeyAttributes.SKName] = getAttribute(foundKeys.SKMember, foundKeys.SKValue, foundKeys.SKPrefix);
             }
             return keyItem;
         }

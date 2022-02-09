@@ -41,8 +41,24 @@ namespace NBasis.OneTable.Attributization
             if (converter.TryWriteAsObject(value, out AttributeValue attrValue))
             {
                 if (keyAttr.Prefix != null)
-                    attrValue.S = keyAttr.Prefix + "#" + attrValue.S;
-                return attrValue;
+                {
+                    // attribute must be string regardless of attribute type
+
+                    // we support string or number types
+                    string finalValue = attrValue.S;
+                    if (attrValue.N != null)
+                        finalValue = attrValue.N;
+
+                    return new AttributeValue
+                    {
+                        S = keyAttr.Prefix + "#" + finalValue
+                    };
+                }
+                else
+                {
+                    // key is what the converter sends back
+                    return attrValue;
+                }
             }   
 
             return null;

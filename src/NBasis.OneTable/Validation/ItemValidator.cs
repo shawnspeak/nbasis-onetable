@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NBasis.OneTable.Validation
+﻿namespace NBasis.OneTable.Validation
 {
     internal class ItemValidator<TItem> where TItem : class
     {

@@ -92,6 +92,7 @@ namespace NBasis.OneTableTests.Integration
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         private bool disposed = false;

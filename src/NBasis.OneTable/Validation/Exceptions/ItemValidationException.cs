@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NBasis.OneTable.Validation.Exceptions
+﻿namespace NBasis.OneTable.Validation.Exceptions
 {
     public abstract class ItemValidationException : Exception
     {

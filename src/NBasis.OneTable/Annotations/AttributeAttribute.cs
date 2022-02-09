@@ -1,6 +1,4 @@
-﻿using NBasis.OneTable.Attributization;
-
-namespace NBasis.OneTable.Annotations
+﻿namespace NBasis.OneTable.Annotations
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class AttributeAttribute : Attribute
@@ -11,7 +9,8 @@ namespace NBasis.OneTable.Annotations
 
         public AttributeAttribute(
             string fieldName = null, 
-            Type coverter = null)
+            Type coverter = null
+        )
         {
             FieldName = fieldName;
             Converter = coverter;

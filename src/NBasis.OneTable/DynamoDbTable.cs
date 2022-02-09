@@ -1,10 +1,5 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NBasis.OneTable
 {
@@ -70,7 +65,7 @@ namespace NBasis.OneTable
                 });
             }
 
-            var response = await _client.CreateTableAsync(request);
+            await _client.CreateTableAsync(request);
 
         }
 
@@ -80,7 +75,7 @@ namespace NBasis.OneTable
             { 
                 TableName = GetTableName() 
             };
-            var response = await _client.DeleteTableAsync(request);
+            await _client.DeleteTableAsync(request);
             
             // wrap amazon exception 
         }
