@@ -11,10 +11,10 @@
 
         public void Validate(TPatch item)
         {
-            // validate item type first
-            new ItemTypeValidator<TPatch>(_context).Validate();
+            // validate patch type first
+            new PatchTypeValidator<TPatch>(_context).Validate();
 
-            // must have keys and required values
+            // must have required values
         }
     }
 }

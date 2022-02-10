@@ -13,6 +13,8 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/shawnspeak/nbasis-onetable</RepositoryUrl>
     <Authors>Shawn Beach</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
