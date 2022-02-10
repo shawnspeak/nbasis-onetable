@@ -6,8 +6,6 @@ using NBasis.OneTable.Annotations;
 using NBasis.OneTableTests.Integration.TableCreation;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -23,41 +21,34 @@ namespace NBasis.OneTableTests.Integration.PutItem
 
         [Attribute]
         public string Something { get; set; }
-    }
 
-    [Collection("DynamoDbDocker")]
-    public class When_Item_Is_Put : ServiceProviderTestBase
-    {
-        readonly DynamoDbDockerFixture _fixture;
-
-        public When_Item_Is_Put(DynamoDbDockerFixture fixture)
+        public static SimplePutItemTest TestData()
         {
-            _fixture = fixture;
-        }
-
-        [Fact]
-        public async Task Then_item_is_added()
-        {
-            var testClass = new SimplePutItemTest()
+            return new SimplePutItemTest()
             {
                 PK = Guid.NewGuid().ToString(),
                 SK = Guid.NewGuid().ToString(),
                 Something = "Wonderful"
             };
+        }
+    }
 
-            string tableName = Guid.NewGuid().ToString();
-            Given((sc) =>
-            {
-                sc.AddSingleton<IAmazonDynamoDB>(_fixture.DynamoDbClient);
-                sc.AddOneTable<TestTableContext>(tableName);
-            });
+    [Collection("DynamoDbDocker")]
+    public class When_Item_Is_Put : OneTableTestBase<TestTableContext>
+    {
+        public When_Item_Is_Put(DynamoDbDockerFixture fixture) : base(fixture)
+        {
+        }
 
-            When(async (sp) =>
-            {
-                var oneTable = sp.GetRequiredService<ITable<TestTableContext>>();
-                await oneTable.CreateAsync();
+        [Fact]
+        public async Task Then_item_is_added()
+        {
+            var testClass = SimplePutItemTest.TestData();
 
-                var store = sp.GetRequiredService<IItemStore<TestTableContext>>();
+            await Given();
+
+            When(async (store, sp) =>
+            {   
                 await store.Put(testClass);
             });
 
@@ -70,7 +61,7 @@ namespace NBasis.OneTableTests.Integration.PutItem
 
                 var request = new GetItemRequest
                 {
-                    TableName = tableName,
+                    TableName = TableName,
                     Key = new Dictionary<string, AttributeValue>
                     {
                         { "PK", new AttributeValue(testClass.PK) },
@@ -84,10 +75,6 @@ namespace NBasis.OneTableTests.Integration.PutItem
 
                 Assert.Equal(3, response.Item.Count);
 
-                Assert.True(response.Item.ContainsKey("PK"));
-                Assert.True(response.Item.ContainsKey("SK"));
-                Assert.True(response.Item.ContainsKey("Something"));
-
                 Assert.Equal(testClass.PK, response.Item["PK"].S);
                 Assert.Equal(testClass.SK, response.Item["SK"].S);
                 Assert.Equal(testClass.Something, response.Item["Something"].S);
@@ -97,26 +84,12 @@ namespace NBasis.OneTableTests.Integration.PutItem
         [Fact]
         public async Task Then_item_can_be_round_tripped()
         {
-            var testClass = new SimplePutItemTest()
-            {
-                PK = Guid.NewGuid().ToString(),
-                SK = Guid.NewGuid().ToString(),
-                Something = "Wonderful"
-            };
+            var testClass = SimplePutItemTest.TestData();
 
-            string tableName = Guid.NewGuid().ToString();
-            Given((sc) =>
-            {
-                sc.AddSingleton<IAmazonDynamoDB>(_fixture.DynamoDbClient);
-                sc.AddOneTable<TestTableContext>(tableName);
-            });
+            await Given();
 
-            When(async (sp) =>
+            When(async (store, sp) =>
             {
-                var oneTable = sp.GetRequiredService<ITable<TestTableContext>>();
-                await oneTable.CreateAsync();
-
-                var store = sp.GetRequiredService<IItemStore<TestTableContext>>();
                 await store.Put(testClass);
             });
 
