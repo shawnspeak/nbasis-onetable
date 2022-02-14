@@ -1,4 +1,5 @@
-﻿using NBasis.OneTable.Attributization;
+﻿using NBasis.OneTable.Annotations;
+using NBasis.OneTable.Attributization;
 
 namespace NBasis.OneTable
 {
@@ -56,6 +57,31 @@ namespace NBasis.OneTable
 
             // validate config
             Configuration.Validate();
+        }
+
+        // some helper methods
+        internal string GSIndexName(int indexNumber)
+        {
+            return string.Format(Configuration.GSIndexNameFormat, indexNumber);
+        }
+
+        internal string GPKAttributeName(int indexNumber)
+        {
+            return string.Format(Configuration.KeyAttributes.GPKNameFormat, indexNumber);
+        }
+
+        internal string GSKAttributeName(int indexNumber)
+        {
+            return string.Format(Configuration.KeyAttributes.GSKNameFormat, indexNumber);
+        }
+
+        internal string FormatKeyPrefix(KeyAttribute keyAttr, string value)
+        {
+            if (string.IsNullOrEmpty(keyAttr.Prefix))
+                return value;
+            if (!string.IsNullOrWhiteSpace(this.Configuration.KeyAttributes.KeyPrefixDelimiter))
+                return keyAttr.Prefix + this.Configuration.KeyAttributes.KeyPrefixDelimiter + value;
+            return keyAttr.Prefix + value;
         }
     }
 }

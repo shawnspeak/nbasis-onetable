@@ -4,13 +4,16 @@
     {
         internal const int DefaultGSIndexCount = 2;
         internal const int MaxGSIndexCount = 20;
+        internal const string GSIndexFormat = "GSI{0}";
+        internal const string DefaultKeyPrefixDelimiter = "#";
+        internal const string DefaultGSIndexNameFormat = "gsi_{0}";
 
         internal static class KeyAttributeNames
         {
-            public const string PK = "PK";
-            public const string SK = "SK";
-            public const string GPK = "GPK";
-            public const string GSK = "GSK";
+            internal const string PK = "PK";
+            internal const string SK = "SK";
+            internal const string GPK = "GPK{0}";
+            internal const string GSK = "GSK{0}";
         }
     }
 }

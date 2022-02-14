@@ -190,7 +190,7 @@ namespace NBasis.OneTable.Expressions
 
                         return new AttributeValue
                         {
-                            S = keyAttr.Prefix + "#" + finalValue
+                            S = _context.FormatKeyPrefix(keyAttr, finalValue)
                         };
                     }
                     else

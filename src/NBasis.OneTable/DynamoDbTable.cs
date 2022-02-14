@@ -41,22 +41,22 @@ namespace NBasis.OneTable
             // add the indexes
             for (int i = 0; i < _context.Configuration.GSIndexCount; i++)
             {
-                string idx = (i + 1).ToString();
+                int idx = i + 1;
 
                 request.AttributeDefinitions.Add(
-                    new AttributeDefinition(_context.Configuration.KeyAttributes.GPKPrefix + idx, ScalarAttributeType.S)
+                    new AttributeDefinition(_context.GPKAttributeName(idx), ScalarAttributeType.S)
                 );
                 request.AttributeDefinitions.Add(
-                    new AttributeDefinition(_context.Configuration.KeyAttributes.GSKPrefix + idx, ScalarAttributeType.S)
+                    new AttributeDefinition(_context.GSKAttributeName(idx), ScalarAttributeType.S)
                 );
 
                 request.GlobalSecondaryIndexes.Add(new GlobalSecondaryIndex
                 {
-                    IndexName = "gsi_" + idx,
+                    IndexName = _context.GSIndexName(idx),
                     KeySchema = new List<KeySchemaElement>
                     {
-                        new KeySchemaElement(_context.Configuration.KeyAttributes.GPKPrefix + idx, KeyType.HASH),
-                        new KeySchemaElement(_context.Configuration.KeyAttributes.GSKPrefix + idx, KeyType.RANGE)
+                        new KeySchemaElement(_context.GPKAttributeName(idx), KeyType.HASH),
+                        new KeySchemaElement(_context.GSKAttributeName(idx), KeyType.RANGE)
                     },
                     Projection = new Projection
                     {

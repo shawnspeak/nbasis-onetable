@@ -119,7 +119,7 @@ namespace NBasis.OneTableTests.Unit.Keys
 
             Assert.Equal(2, details.AttributeNames.Count);
             Assert.Equal(2, details.AttributeValues.Count);
-            Assert.Equal("GSI1", details.IndexName);
+            Assert.Equal("gsi_1", details.IndexName);
 
             Assert.Equal("GPK1", details.AttributeNames["#pk"]);
             Assert.Equal("GPPREF#12", details.AttributeValues[":pk"].S);
@@ -138,7 +138,7 @@ namespace NBasis.OneTableTests.Unit.Keys
 
             Assert.Equal(2, details.AttributeNames.Count);
             Assert.Equal(2, details.AttributeValues.Count);
-            Assert.Equal("GSI2", details.IndexName);
+            Assert.Equal("gsi_2", details.IndexName);
 
             Assert.Equal("GPK2", details.AttributeNames["#pk"]);
             Assert.Equal("G2PREF#12", details.AttributeValues[":pk"].S);

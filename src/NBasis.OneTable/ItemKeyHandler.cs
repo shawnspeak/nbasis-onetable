@@ -39,7 +39,7 @@ namespace NBasis.OneTable
 
                         keyItem[fieldName] = new AttributeValue
                         {
-                            S = keyAttr.Prefix + "#" + finalValue
+                            S = _context.FormatKeyPrefix(keyAttr, finalValue)
                         };
                     } 
                     else

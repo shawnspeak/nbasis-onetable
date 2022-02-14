@@ -8,35 +8,47 @@
 
             public string SKName { get; set; }
 
-            public string GPKPrefix { get; set; }
+            public string GPKNameFormat { get; set; }
 
-            public string GSKPrefix { get; set; }
+            public string GSKNameFormat { get; set; }
+
+            public string KeyPrefixDelimiter { get; set; }
 
             internal KeyAttributeConfiguration()
             {
                 PKName = Constants.KeyAttributeNames.PK;
                 SKName = Constants.KeyAttributeNames.SK;
-                GPKPrefix = Constants.KeyAttributeNames.GPK;
-                GSKPrefix = Constants.KeyAttributeNames.GSK;
+                GPKNameFormat = Constants.KeyAttributeNames.GPK;
+                GSKNameFormat = Constants.KeyAttributeNames.GSK;
+                KeyPrefixDelimiter = Constants.DefaultKeyPrefixDelimiter;
             }
 
             internal KeyAttributeConfiguration(KeyAttributeConfiguration other)
             {
                 PKName = other.PKName;
                 SKName = other.SKName;
-                GPKPrefix = other.GPKPrefix;
-                GSKPrefix = other.GSKPrefix;
+                GPKNameFormat = other.GPKNameFormat;
+                GSKNameFormat = other.GSKNameFormat;
+                KeyPrefixDelimiter = other.KeyPrefixDelimiter;
             }
 
             internal void Validate()
             {
-                
+                // names and formats required
+
+                // must pass attribute naming rules
+
+                // no attribute dups
+
+                // formats must contain placeholder
             }
         }
 
         public KeyAttributeConfiguration KeyAttributes { get; private set; }
 
         public int GSIndexCount { get; set; }
+
+        public string GSIndexNameFormat { get; set; }
 
         public static TableConfiguration Default()
         {
@@ -45,13 +57,21 @@
 
         internal void Validate()
         {
+            // gsi count must be in range
             if ((GSIndexCount < 0) || (GSIndexCount > Constants.MaxGSIndexCount))
                 throw new Exception();
+
+            // index name format required
+
+            // must pass index naming rules
+
+            // formats must contain placeholder
         }
 
         private TableConfiguration()
         {
             GSIndexCount = Constants.DefaultGSIndexCount;
+            GSIndexNameFormat = Constants.DefaultGSIndexNameFormat;
             KeyAttributes = new KeyAttributeConfiguration();
         }
 
@@ -61,6 +81,7 @@
         internal TableConfiguration(TableConfiguration other)
         {
             GSIndexCount = other.GSIndexCount;
+            GSIndexNameFormat= other.GSIndexNameFormat;
             KeyAttributes = new KeyAttributeConfiguration(other.KeyAttributes);
         }
     }

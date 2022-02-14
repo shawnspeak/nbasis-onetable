@@ -268,7 +268,7 @@ namespace NBasis.OneTable.Expressions
 
                         return new AttributeValue
                         {
-                            S = keyAttr.Prefix + "#" + finalValue
+                            S = _context.FormatKeyPrefix(keyAttr, finalValue)
                         };
                     }
                     else
@@ -337,8 +337,8 @@ namespace NBasis.OneTable.Expressions
             }
             else
             {
-                details.AttributeNames["#pk"] = _context.Configuration.KeyAttributes.GPKPrefix + keyAttribute.IndexNumber;
-                details.IndexName = "GSI" + keyAttribute.IndexNumber;
+                details.AttributeNames["#pk"] = _context.GPKAttributeName(keyAttribute.IndexNumber);
+                details.IndexName = _context.GSIndexName(keyAttribute.IndexNumber);
             }
 
             if (sks.Count() > 0)
@@ -365,7 +365,7 @@ namespace NBasis.OneTable.Expressions
                 } 
                 else
                 {
-                    details.AttributeNames["#sk"] = _context.Configuration.KeyAttributes.GSKPrefix + keyAttribute.IndexNumber;
+                    details.AttributeNames["#sk"] = _context.GSKAttributeName(keyAttribute.IndexNumber);
                 }
 
                 details.QueryExpression += string.Format(" AND {0}", _skOperatorStrings[sk.Operator]);

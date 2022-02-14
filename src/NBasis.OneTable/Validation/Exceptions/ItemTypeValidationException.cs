@@ -35,4 +35,11 @@
         {
         }
     }
+
+    public class IndexCountTooLowException : ItemTypeValidationException
+    {
+        public IndexCountTooLowException(string propertyName)
+        {
+        }
+    }
 }

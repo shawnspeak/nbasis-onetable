@@ -85,6 +85,18 @@
         {
             IndexNumber = indexNumber;
         }
+
+        internal override string GetFieldName(TableContext context)
+        {
+            if (KeyType == KeyType.Partition)
+            {
+                return context.GPKAttributeName(IndexNumber);
+            }
+            else
+            {
+                return context.GSKAttributeName(IndexNumber);
+            }
+        }
     }
 
     // these GSI attributes are a bit excessive, but it makes for a cleaner GSI scheme setup
@@ -111,11 +123,6 @@
         }
 
         internal override KeyType KeyType => KeyType.Partition;
-
-        internal override string GetFieldName(TableContext context)
-        {
-            return string.Format(context.Configuration.KeyAttributes.GPKPrefix, IndexNumber);
-        }
     }
 
     public sealed class GSK1Attribute : GSI1KeyAttribute
@@ -128,11 +135,6 @@
         }
 
         internal override KeyType KeyType => KeyType.Sort;
-
-        internal override string GetFieldName(TableContext context)
-        {
-            return string.Format(context.Configuration.KeyAttributes.GSKPrefix, IndexNumber);
-        }
     }
 
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
@@ -157,11 +159,6 @@
         }
 
         internal override KeyType KeyType => KeyType.Partition;
-
-        internal override string GetFieldName(TableContext context)
-        {
-            return string.Format(context.Configuration.KeyAttributes.GPKPrefix, IndexNumber);
-        }
     }
     
     public sealed class GSK2Attribute : GSI2KeyAttribute
@@ -174,10 +171,41 @@
         }
 
         internal override KeyType KeyType => KeyType.Sort;
+    }
 
-        internal override string GetFieldName(TableContext context)
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    public abstract class GSI3KeyAttribute : GSIKeyAttribute
+    {
+        public GSI3KeyAttribute
+        (
+            string prefix = null,
+            Type converter = null
+        ) : base(3, prefix, converter)
         {
-            return string.Format(context.Configuration.KeyAttributes.GSKPrefix, IndexNumber);
         }
+    }
+
+    public sealed class GPK3Attribute : GSI3KeyAttribute
+    {
+        public GPK3Attribute(
+            string prefix = null,
+            Type converter = null
+        ) : base(prefix, converter)
+        {
+        }
+
+        internal override KeyType KeyType => KeyType.Partition;
+    }
+
+    public sealed class GSK3Attribute : GSI3KeyAttribute
+    {
+        public GSK3Attribute(
+            string prefix = null,
+            Type converter = null
+        ) : base(prefix, converter)
+        {
+        }
+
+        internal override KeyType KeyType => KeyType.Sort;
     }
 }

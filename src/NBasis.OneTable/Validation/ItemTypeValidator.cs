@@ -21,14 +21,21 @@ namespace NBasis.OneTable.Validation
             // GS index can't exceed configured count
             // all keys must be scalar
             // keys with prefix must be asString
+            // index number may not be greater than context is configured for
 
             bool pkFound = false;
             typeof(TItem).EnumerateItemKeys((property, attr) =>
             {
+                if (attr.IndexNumber > _context.Configuration.GSIndexCount)
+                {
+                    throw new IndexCountTooLowException(property.Name);
+                }
+
                 if (attr is PKAttribute)
                 {
                     if (pkFound)
                     {
+                        // shouldn't happen
                         // duplicate pk
                         throw new MultiplePKAttributesException();
                     }
@@ -61,6 +68,8 @@ namespace NBasis.OneTable.Validation
                 }
                 fieldNames.Add(fieldName);
             });
+
+            // all attributes meet dynamodb rules
         }
     }
 }
