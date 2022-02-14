@@ -8,6 +8,10 @@ namespace NBasis.OneTable
 {
     public class QueryResults<TItem>
     {
-        public IEnumerable<TItem> Results { get; }
+        public long Count { get; internal set; }
+
+        public long ScannedCount { get; internal set; }
+
+        public IEnumerable<TItem> Results { get; internal set; }
     }
 }

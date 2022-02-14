@@ -1,4 +1,4 @@
-using NBasis.OneTable;
+using NBasis.OneTable.Expressions;
 using System;
 using Xunit;
 

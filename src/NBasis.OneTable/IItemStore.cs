@@ -1,6 +1,7 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using NBasis.OneTable.Attributization;
+using NBasis.OneTable.Expressions;
 using NBasis.OneTable.Validation;
 using System.Linq.Expressions;
 
