@@ -27,6 +27,7 @@ namespace NBasis.OneTable
             });
 
             services.AddSingleton<ITable<TContext>, DynamoDbTable<TContext>>();
+            services.AddSingleton<IItemAttributizer<TContext>, DynamoDbItemAttributizer<TContext>>();
             services.AddSingleton<IItemLookup<TContext>, DynamoDbItemLookup<TContext>>();
             services.AddSingleton<IItemStore<TContext>, DynamoDbItemStore<TContext>>();
             return services;

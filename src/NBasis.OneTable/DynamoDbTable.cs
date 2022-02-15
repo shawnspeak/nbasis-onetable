@@ -19,7 +19,7 @@ namespace NBasis.OneTable
             return _context.TableName;
         }
 
-        public async Task CreateAsync()
+        public async Task Create()
         {
             // build out table based upon context
             var request = new CreateTableRequest
@@ -69,7 +69,7 @@ namespace NBasis.OneTable
 
         }
 
-        public async Task DeleteAsync()
+        public async Task Delete()
         {
             var request = new DeleteTableRequest
             { 
@@ -80,16 +80,16 @@ namespace NBasis.OneTable
             // wrap amazon exception 
         }
 
-        public async Task EnsureAsync()
+        public async Task Ensure()
         {
-            var exists = await this.ExistsAsync();
+            var exists = await this.Exists();
             if (!exists)
             {
-                await this.CreateAsync();
+                await this.Create();
             }
         }
 
-        public async Task<bool> ExistsAsync()
+        public async Task<bool> Exists()
         {
             var request = new DescribeTableRequest
             {

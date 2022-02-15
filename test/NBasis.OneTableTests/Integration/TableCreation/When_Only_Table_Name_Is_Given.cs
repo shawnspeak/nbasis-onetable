@@ -34,7 +34,7 @@ namespace NBasis.OneTableTests.Integration.TableCreation
             {
                 var oneTable = sp.GetRequiredService<ITable<TestTableContext>>();
 
-                await oneTable.CreateAsync();
+                await oneTable.Create();
             });
 
             await Then(async (ex) =>
@@ -68,7 +68,7 @@ namespace NBasis.OneTableTests.Integration.TableCreation
             {
                 var oneTable = sp.GetRequiredService<ITable<TestTableContext>>();
 
-                await oneTable.CreateAsync();
+                await oneTable.Create();
             });
 
             await Then(async (ex) =>

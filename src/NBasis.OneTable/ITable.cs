@@ -6,12 +6,12 @@
     /// <remarks>Creation, deletion and existence methods for a table context</remarks>
     public interface ITable<TContext> where TContext : TableContext
     {
-        Task CreateAsync();
+        Task Create();
 
-        Task<bool> ExistsAsync();
+        Task<bool> Exists();
 
-        Task DeleteAsync();
+        Task Delete();
 
-        Task EnsureAsync();
+        Task Ensure();
     }
 }

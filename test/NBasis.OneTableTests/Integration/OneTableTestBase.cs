@@ -34,7 +34,7 @@ namespace NBasis.OneTableTests.Integration
 
             // created the table
             var oneTable = _provider.GetRequiredService<ITable<TContext>>();
-            await oneTable.CreateAsync();
+            await oneTable.Create();
 
 
             if (given != null)
