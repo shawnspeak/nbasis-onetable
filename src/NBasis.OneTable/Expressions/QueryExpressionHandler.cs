@@ -3,6 +3,7 @@ using NBasis.OneTable.Annotations;
 using NBasis.OneTable.Exceptions;
 using System.Linq.Expressions;
 using System.Reflection;
+using static NBasis.OneTable.Expressions.ItemQueryExpressionVisitor;
 
 namespace NBasis.OneTable.Expressions
 {
@@ -25,11 +26,23 @@ namespace NBasis.OneTable.Expressions
         readonly Stack<string> _fieldNames = new();
         readonly List<FoundKey> _foundKeys = new();
         private FoundKey _currentKey = null;
-        private Amazon.DynamoDBv2.DocumentModel.QueryOperator? _methodOperator = null;
+        private QueryOperator? _methodOperator = null;
 
         public FoundKey[] FoundKeys
         {
             get { return _foundKeys.ToArray(); }
+        }
+
+        public enum QueryOperator
+        {
+            Equal,
+            LessThanOrEqual,
+            LessThan,
+            GreaterThanOrEqual,
+            GreaterThan,
+            BeginsWith,
+            Between,
+            AllByPrefix,
         }
 
         public class FoundKey
@@ -42,7 +55,7 @@ namespace NBasis.OneTable.Expressions
 
             public int CurrentArg { get; set; }
 
-            public Amazon.DynamoDBv2.DocumentModel.QueryOperator Operator { get; set; }
+            public QueryOperator Operator { get; set; }
 
             public KeyAttribute[] KeyAttributes { get; set; }
         }
@@ -102,7 +115,7 @@ namespace NBasis.OneTable.Expressions
                 }
                 _currentKey.CurrentArg++;
 
-                if (_currentKey.Operator == Amazon.DynamoDBv2.DocumentModel.QueryOperator.Between)
+                if (_currentKey.Operator == QueryOperator.Between)
                 {
                     if (_currentKey.CurrentArg > 1)
                         _currentKey = null;
@@ -133,11 +146,11 @@ namespace NBasis.OneTable.Expressions
 
                 _currentKey.Operator = node.NodeType switch
                 {
-                    ExpressionType.Equal => Amazon.DynamoDBv2.DocumentModel.QueryOperator.Equal,
-                    ExpressionType.LessThanOrEqual => Amazon.DynamoDBv2.DocumentModel.QueryOperator.LessThanOrEqual,
-                    ExpressionType.LessThan => Amazon.DynamoDBv2.DocumentModel.QueryOperator.LessThan,
-                    ExpressionType.GreaterThan => Amazon.DynamoDBv2.DocumentModel.QueryOperator.GreaterThan,
-                    ExpressionType.GreaterThanOrEqual => Amazon.DynamoDBv2.DocumentModel.QueryOperator.GreaterThanOrEqual,
+                    ExpressionType.Equal => QueryOperator.Equal,
+                    ExpressionType.LessThanOrEqual => QueryOperator.LessThanOrEqual,
+                    ExpressionType.LessThan => QueryOperator.LessThan,
+                    ExpressionType.GreaterThan => QueryOperator.GreaterThan,
+                    ExpressionType.GreaterThanOrEqual => QueryOperator.GreaterThanOrEqual,
                     _ => throw new ArgumentException("Invalid operator"),
                 };
             }
@@ -157,8 +170,9 @@ namespace NBasis.OneTable.Expressions
             // look for StartsWith and Between
             _methodOperator = node.Method.Name.ToLower() switch
             {
-                "beginswith" => Amazon.DynamoDBv2.DocumentModel.QueryOperator.BeginsWith,
-                "between" => Amazon.DynamoDBv2.DocumentModel.QueryOperator.Between,
+                "allbyprefix" => QueryOperator.AllByPrefix,
+                "beginswith" => QueryOperator.BeginsWith,
+                "between" => QueryOperator.Between,
                 _ => throw new ArgumentException("Invalid method"),
             };
             foreach (var arg in node.Arguments)
@@ -219,15 +233,16 @@ namespace NBasis.OneTable.Expressions
     {
         readonly TableContext _context;
 
-        readonly static Dictionary<Amazon.DynamoDBv2.DocumentModel.QueryOperator, string> _skOperatorStrings = new()
+        readonly static Dictionary<QueryOperator, string> _skOperatorStrings = new()
         {
-            { Amazon.DynamoDBv2.DocumentModel.QueryOperator.Equal, "#sk = :sk" },
-            { Amazon.DynamoDBv2.DocumentModel.QueryOperator.GreaterThan, "#sk > :sk" },
-            { Amazon.DynamoDBv2.DocumentModel.QueryOperator.GreaterThanOrEqual, "#sk >= :sk" },
-            { Amazon.DynamoDBv2.DocumentModel.QueryOperator.LessThan, "#sk < :sk" },
-            { Amazon.DynamoDBv2.DocumentModel.QueryOperator.LessThanOrEqual, "#sk <= :sk" },
-            { Amazon.DynamoDBv2.DocumentModel.QueryOperator.BeginsWith, "begins_with(#sk,:sk)" },
-            { Amazon.DynamoDBv2.DocumentModel.QueryOperator.Between, "#sk BETWEEN :sk1 AND :sk2" }
+            { QueryOperator.Equal, "#sk = :sk" },
+            { QueryOperator.GreaterThan, "#sk > :sk" },
+            { QueryOperator.GreaterThanOrEqual, "#sk >= :sk" },
+            { QueryOperator.LessThan, "#sk < :sk" },
+            { QueryOperator.LessThanOrEqual, "#sk <= :sk" },
+            { QueryOperator.BeginsWith, "begins_with(#sk,:sk)" },
+            { QueryOperator.Between, "#sk BETWEEN :sk1 AND :sk2" },
+            { QueryOperator.AllByPrefix, "begins_with(#sk,:sk)" }
         };
 
         public ItemQueryExpressionHandler(TableContext context)
@@ -284,7 +299,7 @@ namespace NBasis.OneTable.Expressions
 
             // get all the valid pk expressions
             var pks = foundKeys
-                        .Where(k => k.KeyAttributes.Any(ka => ka.KeyType == KeyType.Partition) && k.Operator == Amazon.DynamoDBv2.DocumentModel.QueryOperator.Equal);
+                        .Where(k => k.KeyAttributes.Any(ka => ka.KeyType == KeyType.Partition) && k.Operator == QueryOperator.Equal);
             if (pks.Count() == 0) // will always have a PK
                 throw new ArgumentException("Missing a valid PK or GPK key expression");
             var sks = foundKeys.Where(k => k.KeyAttributes.Any(ka => ka.KeyType == KeyType.Sort));
@@ -292,42 +307,35 @@ namespace NBasis.OneTable.Expressions
             // if more than one possible, then we need to look at SK to determine which
             ItemQueryExpressionVisitor.FoundKey pk = null;
             KeyAttribute keyAttribute = null;
-            if (pks.Count() > 1)
+            
+            if (sks.Count() == 0)
             {
-                if (sks.Count() == 0)
-                {
-                    // otherwise take the min index number
-                    pk = pks.OrderBy(k => k.KeyAttributes.Min(ka => ka.IndexNumber)).First();
-                    keyAttribute = pk.KeyAttributes.Where(ka => ka.KeyType == KeyType.Partition).OrderBy(ka => ka.IndexNumber).First();
-                } 
-                else
-                {
-                    List<int> sksIndexNumbers = new();
-                    foreach (var sk in sks)
-                    {
-                        var i = sk.KeyAttributes.Where(ka => ka.KeyType == KeyType.Sort).Select(ka => ka.IndexNumber);
-                        if (i.Count() > 0)
-                            sksIndexNumbers.AddRange(i);
-                    }
-
-                    // look for pk based upon sksIndexNumbers
-                    foreach (var skIndex in sksIndexNumbers.OrderBy(k => k))
-                    {
-                        pk = pks.Where(k => k.KeyAttributes.Where(ka => ka.KeyType == KeyType.Partition && ka.IndexNumber == skIndex).Any()).FirstOrDefault();
-                        if (pk != null)
-                        {
-                            keyAttribute = pk.KeyAttributes.Where(ka => ka.KeyType == KeyType.Partition && ka.IndexNumber == skIndex).First();
-                            break;
-                        }
-                    }
-                }
+                // otherwise take the min index number
+                pk = pks.OrderBy(k => k.KeyAttributes.Min(ka => ka.IndexNumber)).First();
+                keyAttribute = pk.KeyAttributes.Where(ka => ka.KeyType == KeyType.Partition).OrderBy(ka => ka.IndexNumber).First();
             } 
             else
             {
-                // otherwise take the min index number
-                pk = pks.First();
-                keyAttribute = pk.KeyAttributes.Where(ka => ka.KeyType == KeyType.Partition).OrderBy(ka => ka.IndexNumber).First();
+                List<int> sksIndexNumbers = new();
+                foreach (var sk in sks)
+                {
+                    var i = sk.KeyAttributes.Where(ka => ka.KeyType == KeyType.Sort).Select(ka => ka.IndexNumber);
+                    if (i.Count() > 0)
+                        sksIndexNumbers.AddRange(i);
+                }
+
+                // look for pk based upon sksIndexNumbers
+                foreach (var skIndex in sksIndexNumbers.OrderBy(k => k))
+                {
+                    pk = pks.Where(k => k.KeyAttributes.Where(ka => ka.KeyType == KeyType.Partition && ka.IndexNumber == skIndex).Any()).FirstOrDefault();
+                    if (pk != null)
+                    {
+                        keyAttribute = pk.KeyAttributes.Where(ka => ka.KeyType == KeyType.Partition && ka.IndexNumber == skIndex).First();
+                        break;
+                    }
+                }
             }
+         
 
             details.QueryExpression = "#pk = :pk";
             details.AttributeValues[":pk"] = getAttribute(pk.Member, pk.Value, keyAttribute);
@@ -350,11 +358,15 @@ namespace NBasis.OneTable.Expressions
                 var skAttribute = sk.KeyAttributes.Where(ka => ka.KeyType == KeyType.Sort && ka.IndexNumber == keyAttribute.IndexNumber).First();
 
                 // limit operators to type
-                if (sk.Operator == Amazon.DynamoDBv2.DocumentModel.QueryOperator.Between)
+                if (sk.Operator == QueryOperator.Between)
                 {
                     details.AttributeValues[":sk1"] = getAttribute(sk.Member, sk.Value, skAttribute);
                     details.AttributeValues[":sk2"] = getAttribute(sk.Member, sk.Value2, skAttribute);
                 } 
+                else if (sk.Operator == QueryOperator.AllByPrefix)
+                {
+                    details.AttributeValues[":sk"] = getAttribute(sk.Member, "", skAttribute);
+                }
                 else
                 {   
                     details.AttributeValues[":sk"] = getAttribute(sk.Member, sk.Value, skAttribute);

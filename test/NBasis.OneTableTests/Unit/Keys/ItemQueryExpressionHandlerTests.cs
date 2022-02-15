@@ -145,5 +145,24 @@ namespace NBasis.OneTableTests.Unit.Keys
             Assert.Equal("GSK2", details.AttributeNames["#sk"]);
             Assert.Equal("G2PREF#1234", details.AttributeValues[":sk"].S);
         }
+
+        [Fact]
+        public void All_by_prefix_test2()
+        {
+            var tableContext = new TestContext();
+            var expHandler = new ItemQueryExpressionHandler<KeyOverlapTestClass>(tableContext);
+
+            var details = expHandler.Handle(i => i.PK == "12" && i.GPK1.AllByPrefix());
+            Assert.Equal("#pk = :pk AND begins_with(#sk,:sk)", details.QueryExpression);
+
+            Assert.Equal(2, details.AttributeNames.Count);
+            Assert.Equal(2, details.AttributeValues.Count);
+            Assert.Equal("gsi_2", details.IndexName);
+
+            Assert.Equal("GPK2", details.AttributeNames["#pk"]);
+            Assert.Equal("G2PREF#12", details.AttributeValues[":pk"].S);
+            Assert.Equal("GSK2", details.AttributeNames["#sk"]);
+            Assert.Equal("G2PREF#", details.AttributeValues[":sk"].S);
+        }
     }
 }

@@ -17,5 +17,10 @@ namespace NBasis.OneTable
         {
             return true;
         }
+
+        public static bool AllByPrefix<T>(this T obj)
+        {
+            return true;
+        }
     }
 }
