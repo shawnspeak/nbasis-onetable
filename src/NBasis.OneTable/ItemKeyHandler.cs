@@ -24,7 +24,7 @@ namespace NBasis.OneTable
                 // use converter to get attribute value
                 var converter = _context.AttributizerSettings.GetConverter(property.PropertyType);
 
-                if (converter.TryWriteAsObject(value, out AttributeValue attrValue))
+                if (converter.TryWriteAsObject(value, property.PropertyType, out AttributeValue attrValue))
                 {
                     string fieldName = keyAttr.GetFieldName(_context);
 

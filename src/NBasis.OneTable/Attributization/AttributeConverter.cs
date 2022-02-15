@@ -11,9 +11,9 @@ namespace NBasis.OneTable.Attributization
 
         internal abstract Type TypeToConvert { get; }
 
-        internal abstract bool TryWriteAsObject(object value, out AttributeValue attributeValue);
+        internal abstract bool TryWriteAsObject(object value, Type objectType, out AttributeValue attributeValue);
 
-        internal abstract bool TryReadAsObject(AttributeValue attributeValue, out object obj);
+        internal abstract bool TryReadAsObject(AttributeValue attributeValue, Type objectType, out object obj);
     }
 
     public abstract class AttributeConverter<T> : AttributeConverter
@@ -33,8 +33,18 @@ namespace NBasis.OneTable.Attributization
             return true;
         }
 
-        internal sealed override bool TryReadAsObject(AttributeValue attribute, out object obj)
+        internal sealed override bool TryReadAsObject(AttributeValue attribute, Type objectType, out object obj)
         {
+            Type underlying = Nullable.GetUnderlyingType(objectType);
+            if (underlying != null)
+            {
+                if (attribute.NULL)
+                {
+                    obj = null;
+                    return true;
+                }
+            }
+
             var ret = TryRead(attribute, out T objT);
             obj = objT;
             return ret;
@@ -48,8 +58,21 @@ namespace NBasis.OneTable.Attributization
             return true;
         }
 
-        internal sealed override bool TryWriteAsObject(object value, out AttributeValue attributeValue)
+        internal sealed override bool TryWriteAsObject(object value, Type objectType, out AttributeValue attributeValue)
         {
+            Type underlying = Nullable.GetUnderlyingType(objectType);
+            if (underlying != null)
+            {
+                if (value == null)
+                {
+                    attributeValue = new AttributeValue
+                    {
+                        NULL = true
+                    };
+                    return true;
+                }                
+            }
+            
             T valueOfT = (T)value!;
             return TryWrite(valueOfT, out attributeValue);
         }

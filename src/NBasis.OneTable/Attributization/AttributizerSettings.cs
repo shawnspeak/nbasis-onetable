@@ -17,7 +17,12 @@ namespace NBasis.OneTable.Attributization
             };
 
             add(BuiltInConverters.BooleanConverter);
-            add(BuiltInConverters.IntConverter);            
+            add(BuiltInConverters.DecimalConverter);
+            add(BuiltInConverters.DateTimeConverter);
+            add(BuiltInConverters.DateTimeOffsetConverter);
+            add(BuiltInConverters.DoubleConverter);
+            add(BuiltInConverters.IntConverter);
+            add(BuiltInConverters.FloatConverter);
             add(BuiltInConverters.GuidConverter);
             add(BuiltInConverters.LongIntConverter);
             add(BuiltInConverters.ShortIntConverter);
@@ -44,13 +49,20 @@ namespace NBasis.OneTable.Attributization
                 throw new ArgumentNullException(nameof(typeToConvert));
             }
 
+            Type typeToLookup = typeToConvert;
+            Type underlying = Nullable.GetUnderlyingType(typeToConvert);
+            if (underlying != null )
+            {
+                typeToLookup = underlying;
+            }             
+
             // do we have an override converter?
-            if (_overrideConverters.ContainsKey(typeToConvert))
-                return _overrideConverters[typeToConvert];
+            if (_overrideConverters.ContainsKey(typeToLookup))
+                return _overrideConverters[typeToLookup];
 
             // do we have a built-in converter?
-            if (_builtInConverters.ContainsKey(typeToConvert))
-                return _builtInConverters[typeToConvert];
+            if (_builtInConverters.ContainsKey(typeToLookup))
+                return _builtInConverters[typeToLookup];
 
             return null;
         }

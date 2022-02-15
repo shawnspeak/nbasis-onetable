@@ -26,7 +26,7 @@ namespace NBasis.OneTable.Attributization
 
                 var converter = _context.AttributizerSettings.GetConverter(property.PropertyType);
 
-                if (converter.TryWriteAsObject(value, out AttributeValue attrValue))
+                if (converter.TryWriteAsObject(value, property.PropertyType, out AttributeValue attrValue))
                     return attrValue;
             }
             return null;
@@ -38,7 +38,7 @@ namespace NBasis.OneTable.Attributization
 
             var converter = _context.AttributizerSettings.GetConverter(property.PropertyType);
 
-            if (converter.TryWriteAsObject(value, out AttributeValue attrValue))
+            if (converter.TryWriteAsObject(value, property.PropertyType, out AttributeValue attrValue))
             {
                 if (keyAttr.Prefix != null)
                 {
@@ -100,7 +100,7 @@ namespace NBasis.OneTable.Attributization
         {
             var converter = _context.AttributizerSettings.GetConverter(property.PropertyType);
 
-            if (converter.TryReadAsObject(attributeValue, out var value))
+            if (converter.TryReadAsObject(attributeValue, property.PropertyType, out var value))
                 property.SetValue(i, value);
         }
 

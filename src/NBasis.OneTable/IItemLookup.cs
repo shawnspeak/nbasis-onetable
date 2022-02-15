@@ -13,7 +13,6 @@ namespace NBasis.OneTable
         Descending,        
     }
 
-
     public class QueryOptions
     {
         public int Limit { get; set; }

@@ -175,9 +175,10 @@ namespace NBasis.OneTable.Expressions
 
             var getAttribute = (MemberInfo member, object val, KeyAttribute keyAttr) =>
             {
-                var converter = _context.AttributizerSettings.GetConverter(((PropertyInfo)member).PropertyType);
+                var propertyType = ((PropertyInfo)member).PropertyType;
+                var converter = _context.AttributizerSettings.GetConverter(propertyType);
 
-                if (converter.TryWriteAsObject(val, out AttributeValue attrValue))
+                if (converter.TryWriteAsObject(val, propertyType, out AttributeValue attrValue))
                 {
                     if (keyAttr.Prefix != null)
                     {

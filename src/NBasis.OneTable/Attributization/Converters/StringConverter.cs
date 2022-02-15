@@ -6,6 +6,8 @@ namespace NBasis.OneTable.Attributization.Converters
     {
         public override string Read(AttributeValue attribute)
         {
+            if (attribute.NULL)
+                return null;
             return attribute.S;
         }
 
