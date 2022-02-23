@@ -1,4 +1,5 @@
 ﻿using NBasis.OneTable.Attributization.Converters;
+using NBasis.OneTable.Exceptions;
 
 namespace NBasis.OneTable.Attributization
 {
@@ -64,7 +65,7 @@ namespace NBasis.OneTable.Attributization
             if (_builtInConverters.ContainsKey(typeToLookup))
                 return _builtInConverters[typeToLookup];
 
-            return null;
+            throw new MissingAttributeConverterException();
         }
     }
 }

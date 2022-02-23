@@ -188,6 +188,12 @@ namespace NBasis.OneTable.Expressions
             // if it is not simple value
             if (type.IsClass && type != typeof(string))
             {
+                if (_fieldNames.Count == 0)
+                {
+                    // if there is nothing left on the stack, then we assume that the input IS the value
+                    return input;
+                }
+
                 // proper order of selected names provided by means of Stack structure
                 var fieldName = _fieldNames.Pop();
                 var fieldInfo = type.GetField(fieldName);
