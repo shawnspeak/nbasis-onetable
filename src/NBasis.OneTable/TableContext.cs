@@ -1,4 +1,5 @@
-﻿using NBasis.OneTable.Annotations;
+﻿using Amazon.DynamoDBv2.Model;
+using NBasis.OneTable.Annotations;
 using NBasis.OneTable.Attributization;
 
 namespace NBasis.OneTable
@@ -82,6 +83,34 @@ namespace NBasis.OneTable
             if (!string.IsNullOrWhiteSpace(this.Configuration.KeyAttributes.KeyPrefixDelimiter))
                 return keyAttr.Prefix + this.Configuration.KeyAttributes.KeyPrefixDelimiter + value;
             return keyAttr.Prefix + value;
+        }
+
+        internal AttributeValue StripKeyPrefix(KeyAttribute keyAttr, AttributeValue value)
+        {
+            if (string.IsNullOrEmpty(keyAttr.Prefix))
+                return value;
+
+            // prefixed key must be string
+            string keyString = value.S;
+            if (!string.IsNullOrEmpty(keyString))
+            {
+                if (!string.IsNullOrWhiteSpace(this.Configuration.KeyAttributes.KeyPrefixDelimiter))
+                {
+                    return new AttributeValue
+                    {
+                        S = keyString.Substring(this.Configuration.KeyAttributes.KeyPrefixDelimiter.Length + keyString.Length)
+                    };
+                }   
+                else
+                {
+                    return new AttributeValue
+                    {
+                        S = keyString.Substring(keyString.Length)
+                    };
+                }
+            }
+
+            return new AttributeValue { S = "" };
         }
     }
 }

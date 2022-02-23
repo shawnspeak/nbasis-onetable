@@ -104,6 +104,18 @@ namespace NBasis.OneTable.Attributization
                 property.SetValue(i, value);
         }
 
+        private void SetKey(TItem i, PropertyInfo property, AttributeValue attributeValue, KeyAttribute keyAttr)
+        {
+            var converter = _context.AttributizerSettings.GetConverter(property.PropertyType);
+
+            var strippedAttributeValue = _context.StripKeyPrefix(keyAttr, attributeValue);
+
+            if (converter.TryReadAsObject(strippedAttributeValue, property.PropertyType, out var value))
+            {
+                property.SetValue(i, value);
+            }   
+        }
+
         /// <summary>
         /// Turn attribute values into an item
         /// </summary>
@@ -129,7 +141,7 @@ namespace NBasis.OneTable.Attributization
                 string fieldName = attr.GetFieldName(_context);
                 if (item.ContainsKey(fieldName))
                 {
-                    SetProperty(i, property, item[fieldName]);
+                    SetKey(i, property, item[fieldName], attr);
                 }
             });
 
