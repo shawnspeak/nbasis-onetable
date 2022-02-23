@@ -92,6 +92,19 @@ namespace NBasis.OneTable.Attributization
                     i[fieldName] = attributeValue;
             });
 
+            // add item type if specified
+            if (!string.IsNullOrWhiteSpace(_context.Configuration.ItemTypeAttributeName))
+            {
+                var itemType = typeof(TItem).GetItemType();
+                if (!string.IsNullOrWhiteSpace(itemType))
+                {
+                    i[_context.Configuration.ItemTypeAttributeName] = new AttributeValue
+                    {
+                        S = itemType
+                    }; 
+                }
+            }
+
             return i;
         }
 
@@ -143,7 +156,7 @@ namespace NBasis.OneTable.Attributization
                 {
                     SetKey(i, property, item[fieldName], attr);
                 }
-            });
+            });            
 
             return i;
         }

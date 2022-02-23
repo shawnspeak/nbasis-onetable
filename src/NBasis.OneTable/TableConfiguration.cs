@@ -50,6 +50,8 @@
 
         public string GSIndexNameFormat { get; set; }
 
+        public string ItemTypeAttributeName { get; set; }
+
         public static TableConfiguration Default()
         {
             return new TableConfiguration();
@@ -72,6 +74,7 @@
         {
             GSIndexCount = Constants.DefaultGSIndexCount;
             GSIndexNameFormat = Constants.DefaultGSIndexNameFormat;
+            ItemTypeAttributeName = Constants.ItemTypeAttributeName;
             KeyAttributes = new KeyAttributeConfiguration();
         }
 
@@ -82,6 +85,7 @@
         {
             GSIndexCount = other.GSIndexCount;
             GSIndexNameFormat= other.GSIndexNameFormat;
+            ItemTypeAttributeName= other.ItemTypeAttributeName;
             KeyAttributes = new KeyAttributeConfiguration(other.KeyAttributes);
         }
     }

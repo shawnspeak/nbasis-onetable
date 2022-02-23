@@ -48,5 +48,15 @@ namespace NBasis.OneTable
         {
             typeof(TItem).EnumerateItemKeys(action);
         }
+
+        internal static string GetItemType(this Type itemType)
+        {
+            var recordTypeAttribute = itemType.GetCustomAttribute<ItemTypeAttribute>();
+            if (recordTypeAttribute != null)
+            {
+                return recordTypeAttribute.ItemType;
+            }
+            return null;
+        }
     }
 }

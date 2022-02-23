@@ -7,6 +7,7 @@
         internal const string GSIndexFormat = "GSI{0}";
         internal const string DefaultKeyPrefixDelimiter = "#";
         internal const string DefaultGSIndexNameFormat = "gsi_{0}";
+        internal const string ItemTypeAttributeName = "RT";
 
         internal static class KeyAttributeNames
         {

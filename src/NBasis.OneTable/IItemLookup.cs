@@ -130,27 +130,5 @@ namespace NBasis.OneTable
         {
             throw new NotImplementedException();
         }
-    }  
-
-    //// [OneTableItem( RecordType: "TYPE")]
-    //// [Timestamp(Operation.Put | Operation.Update, "FIELDNAME")] // handled on the item, but not retrieve as a property
-    //public class SomeItem
-    //{
-    //    [PK("PREFIX")] // required.. can combine.. prefix is optional
-    //    [SK("PREFIX")] // optional.. can combine
-    //    [GPK1] // can combine
-    //    public string SomeId { get; set; }
-
-    //    [GSK1]
-    //    public string Email { get; set; }
-
-    //    [Attribute("FIRST", AttributeType: String | Number, TypeConverter)]
-    //    public string FirstName { get; set; }
-
-    //    [Attribute()]
-    //    public string LastName { get; set; }
-
-    //    // [Timestamp(Operation.Put | Operation.Update, "FIELDNAME")] // exposes the timestamp via property
-    //    public DateTimeOffset TS { get; set; }
-    //}
+    }    
 }

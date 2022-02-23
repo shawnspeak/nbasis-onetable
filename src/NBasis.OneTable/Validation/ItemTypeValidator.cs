@@ -70,6 +70,13 @@ namespace NBasis.OneTable.Validation
             });
 
             // all attributes meet dynamodb rules
+
+            // if record type is specified but not configured
+            var recordType = typeof(TItem).GetItemType();
+            if ((recordType != null) && (_context.Configuration.ItemTypeAttributeName == null))
+            {
+                throw new MissingItemTypeAttributeNameException();
+            }
         }
     }
 }

@@ -42,4 +42,11 @@
         {
         }
     }
+
+    public class MissingItemTypeAttributeNameException : ItemTypeValidationException
+    {
+        public MissingItemTypeAttributeNameException()
+        {
+        }
+    }
 }
