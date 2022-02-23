@@ -98,14 +98,14 @@ namespace NBasis.OneTable
                 {
                     return new AttributeValue
                     {
-                        S = keyString.Substring(this.Configuration.KeyAttributes.KeyPrefixDelimiter.Length + keyString.Length)
+                        S = keyString.Substring(this.Configuration.KeyAttributes.KeyPrefixDelimiter.Length + keyAttr.Prefix.Length)
                     };
                 }   
                 else
                 {
                     return new AttributeValue
                     {
-                        S = keyString.Substring(keyString.Length)
+                        S = keyString.Substring(keyAttr.Prefix.Length)
                     };
                 }
             }
