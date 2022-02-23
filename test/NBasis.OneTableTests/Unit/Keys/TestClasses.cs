@@ -57,6 +57,24 @@ namespace NBasis.OneTableTests.Unit.Keys
         }
     }
 
+    public class TestClassWithGuidSk
+    {
+        [PK("PKP")]
+        public string Pk { get; set; }
+
+        [SK("SKP")]
+        public Guid Sk { get; set; }
+
+        public static TestClassWithGuidSk TestData()
+        {
+            return new TestClassWithGuidSk
+            {
+                Pk = Guid.NewGuid().ToString(),
+                Sk = Guid.NewGuid()
+            };
+        }
+    }
+
     public class TestClassWithNonStringTypesAndPrefixes
     {
         [PK("USR")]

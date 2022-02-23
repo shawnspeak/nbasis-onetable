@@ -164,5 +164,23 @@ namespace NBasis.OneTableTests.Unit.Keys
             Assert.Equal("GSK2", details.AttributeNames["#sk"]);
             Assert.Equal("G2PREF#", details.AttributeValues[":sk"].S);
         }
+
+        [Fact]
+        public void All_by_prefix_test3()
+        {
+            var tableContext = new TestContext();
+            var expHandler = new ItemQueryExpressionHandler<TestClassWithGuidSk>(tableContext);
+
+            var details = expHandler.Handle(i => i.Pk == "12" && i.Sk.AllByPrefix());
+            Assert.Equal("#pk = :pk AND begins_with(#sk,:sk)", details.QueryExpression);
+
+            Assert.Equal(2, details.AttributeNames.Count);
+            Assert.Equal(2, details.AttributeValues.Count);
+
+            Assert.Equal("PK", details.AttributeNames["#pk"]);
+            Assert.Equal("PKP#12", details.AttributeValues[":pk"].S);
+            Assert.Equal("SK", details.AttributeNames["#sk"]);
+            Assert.Equal("SKP#", details.AttributeValues[":sk"].S);
+        }
     }
 }

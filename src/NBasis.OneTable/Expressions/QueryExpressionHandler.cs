@@ -371,7 +371,10 @@ namespace NBasis.OneTable.Expressions
                 } 
                 else if (sk.Operator == QueryOperator.AllByPrefix)
                 {
-                    details.AttributeValues[":sk"] = getAttribute(sk.Member, "", skAttribute);
+                    details.AttributeValues[":sk"] = new AttributeValue
+                    {
+                        S = _context.FormatKeyPrefix(skAttribute, "")
+                    };
                 }
                 else
                 {   
