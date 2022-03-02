@@ -1,9 +1,4 @@
 ﻿using Amazon.DynamoDBv2.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NBasis.OneTable
 {
@@ -32,6 +27,31 @@ namespace NBasis.OneTable
             }
 
             request.UpdateExpression += string.Format("#{0} = :{0}", lowerKey);
+        }
+
+        internal static void AddUpdateItem(this Update update, string name, AttributeValue value)
+        {
+            if (update.ExpressionAttributeValues == null)
+                update.ExpressionAttributeValues = new Dictionary<string, AttributeValue>();
+            if (update.ExpressionAttributeNames == null)
+                update.ExpressionAttributeNames = new Dictionary<string, string>();
+            if (update.UpdateExpression == null)
+                update.UpdateExpression = "";
+
+            var lowerKey = name.ToLower();
+            update.ExpressionAttributeValues.Add(":" + lowerKey, value);
+            update.ExpressionAttributeNames.Add("#" + lowerKey, name);
+
+            if (update.UpdateExpression.Length == 0)
+            {
+                update.UpdateExpression += "SET ";
+            }
+            else
+            {
+                update.UpdateExpression += ", ";
+            }
+
+            update.UpdateExpression += string.Format("#{0} = :{0}", lowerKey);
         }
     }
 }

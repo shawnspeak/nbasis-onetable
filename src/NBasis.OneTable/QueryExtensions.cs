@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NBasis.OneTable
+﻿namespace NBasis.OneTable
 {
     public static class QueryExtensions
     {
@@ -19,6 +13,21 @@ namespace NBasis.OneTable
         }
 
         public static bool AllByPrefix<T>(this T obj)
+        {
+            return true;
+        }
+
+        public static bool Exists<T>(this T obj)
+        {
+            return true;
+        }
+
+        public static bool NotExists<T>(this T obj)
+        {
+            return true;
+        }
+
+        public static bool DoesContain<T>(this T obj, T start)
         {
             return true;
         }

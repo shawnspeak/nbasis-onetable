@@ -1,6 +1,7 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using NBasis.OneTable.Attributization;
+using NBasis.OneTable.Exceptions;
 using NBasis.OneTable.Expressions;
 using NBasis.OneTable.Validation;
 using System.Linq.Expressions;
@@ -9,15 +10,17 @@ namespace NBasis.OneTable
 {
     public interface IItemStore<TContext> where TContext : TableContext
     {
-        Task<TItem> Put<TItem>(TItem item) where TItem : class;
+        Task<TItem> Put<TItem>(TItem item, Expression<Func<TItem, bool>> conditionExpression = null) where TItem : class;
 
-        Task<TItem> Update<TItem>(TItem item) where TItem : class;
+        Task<TItem> Update<TItem>(TItem item, Expression<Func<TItem, bool>> conditionExpression = null) where TItem : class;
 
         Task<TItem> Patch<TItem, TPatch>(Expression<Func<TItem, bool>> keyPredicate, TPatch patch) where TItem : class where TPatch : class;
 
-        Task Delete<TItem>(TItem item) where TItem : class;
+        Task Delete<TItem>(TItem item, Expression<Func<TItem, bool>> conditionExpression = null) where TItem : class;
 
-        Task Delete<TItem>(Expression<Func<TItem, bool>> keyPredicate) where TItem : class;
+        Task Delete<TItem>(Expression<Func<TItem, bool>> keyPredicate, Expression<Func<TItem, bool>> conditionExpression = null) where TItem : class;
+
+        IItemTransaction BeginTransaction();
     }
 
     public class DynamoDbItemStore<TContext> : IItemStore<TContext> where TContext : TableContext
@@ -34,7 +37,7 @@ namespace NBasis.OneTable
             _context = context;
         }
 
-        public async Task Delete<TItem>(TItem item) where TItem : class
+        public Task Delete<TItem>(TItem item, Expression<Func<TItem, bool>> conditionExpression = null) where TItem : class
         {
             if (item == null) throw new ArgumentNullException(nameof(item));
 
@@ -44,16 +47,10 @@ namespace NBasis.OneTable
             // get the key from the item
             var itemKey = (new ItemKeyHandler<TItem>(_context)).BuildKey(item);
 
-            var request = new DeleteItemRequest
-            {
-                TableName = _context.TableName,
-                Key = itemKey
-            };
-
-            await _client.DeleteItemAsync(request);
+            return Delete<TItem>(itemKey, conditionExpression);
         }
 
-        public async Task Delete<TItem>(Expression<Func<TItem, bool>> keyPredicate) where TItem : class
+        public Task Delete<TItem>(Expression<Func<TItem, bool>> keyPredicate, Expression<Func<TItem, bool>> conditionExpression = null) where TItem : class
         {
             if (keyPredicate == null) throw new ArgumentNullException(nameof(keyPredicate));
 
@@ -63,16 +60,38 @@ namespace NBasis.OneTable
             // get key
             var itemKey = new ItemKeyExpressionHandler<TItem>(_context).Handle(keyPredicate);
 
+            return Delete<TItem>(itemKey, conditionExpression);
+        }
+
+        private async Task Delete<TItem>(Dictionary<string, AttributeValue> itemKey, Expression<Func<TItem, bool>> conditionExpression = null) where TItem : class
+        {
             var request = new DeleteItemRequest
             {
                 TableName = _context.TableName,
                 Key = itemKey
             };
 
-            await _client.DeleteItemAsync(request);
+            // deal with conditional
+            if (conditionExpression != null)
+            {
+                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionExpression);
+
+                request.ExpressionAttributeNames = conditionalDetails.AttributeNames;
+                request.ExpressionAttributeValues = conditionalDetails.AttributeValues;
+                request.ConditionExpression = conditionalDetails.ConditionExpression;
+            }
+
+            try // catch the exceptions we want to wrap
+            {
+                await _client.DeleteItemAsync(request);
+            }
+            catch (ConditionalCheckFailedException ccfe)
+            {
+                throw new ConditionFailedException(ccfe);
+            }
         }
-        
-        public async Task<TItem> Put<TItem>(TItem item) where TItem : class
+
+        public async Task<TItem> Put<TItem>(TItem item, Expression<Func<TItem, bool>> conditionExpression = null) where TItem : class
         {
             if (item == null) throw new ArgumentNullException(nameof(item));
 
@@ -88,12 +107,29 @@ namespace NBasis.OneTable
                 Item = attributes
             };
 
-            await _client.PutItemAsync(request);
+            // deal with conditional
+            if (conditionExpression != null)
+            {
+                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionExpression);
+
+                request.ExpressionAttributeNames = conditionalDetails.AttributeNames;
+                request.ExpressionAttributeValues = conditionalDetails.AttributeValues;
+                request.ConditionExpression = conditionalDetails.ConditionExpression;
+            }
+            
+            try // catch the exceptions we want to wrap
+            {
+                await _client.PutItemAsync(request);
+            }
+            catch (ConditionalCheckFailedException ccfe)
+            {
+                throw new ConditionFailedException(ccfe);
+            }
 
             return item;
         }
 
-        public async Task<TItem> Update<TItem>(TItem item) where TItem : class
+        public async Task<TItem> Update<TItem>(TItem item, Expression<Func<TItem, bool>> conditionExpression = null) where TItem : class
         {
             if (item == null) throw new ArgumentNullException(nameof(item));
 
@@ -122,7 +158,32 @@ namespace NBasis.OneTable
                 request.AddUpdateItem(value.Key, value.Value);
             }
 
-            await _client.UpdateItemAsync(request);
+            // deal with conditional
+            if (conditionExpression != null)
+            {
+                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionExpression);
+
+                foreach (var conditionalName in conditionalDetails.AttributeNames)
+                {
+                    request.ExpressionAttributeNames.Add(conditionalName.Key, conditionalName.Value);
+                }
+
+                foreach (var conditionalValue in conditionalDetails.AttributeValues)
+                {
+                    request.ExpressionAttributeValues.Add(conditionalValue.Key, conditionalValue.Value);
+                }
+
+                request.ConditionExpression = conditionalDetails.ConditionExpression;
+            }
+
+            try // catch the exceptions we want to wrap
+            {
+                await _client.UpdateItemAsync(request);
+            }
+            catch (ConditionalCheckFailedException ccfe)
+            {
+                throw new ConditionFailedException(ccfe);
+            }
 
             return item;
         }
@@ -166,6 +227,11 @@ namespace NBasis.OneTable
                 return new ItemAttributizer<TItem>(_context).Deattributize(response.Attributes);
 
             return default;
+        }
+
+        public IItemTransaction BeginTransaction()
+        {
+            return new DynamoDbItemTransaction<TContext>(_client, _context);
         }
     }
 }
