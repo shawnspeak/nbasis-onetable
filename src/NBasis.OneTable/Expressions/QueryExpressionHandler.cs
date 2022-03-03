@@ -279,7 +279,7 @@ namespace NBasis.OneTable.Expressions
 
                 if (converter.TryWriteAsObject(val, propertyType, out AttributeValue attrValue))
                 {
-                    if ((keyAttr.Prefix != null) && (!attrValue.NULL))
+                    if (keyAttr.Prefix != null)
                     {
                         // attribute must be string regardless of attribute type
 
