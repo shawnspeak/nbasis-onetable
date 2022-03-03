@@ -40,7 +40,8 @@ namespace NBasis.OneTable.Attributization
 
             if (converter.TryWriteAsObject(value, property.PropertyType, out AttributeValue attrValue))
             {
-                if (keyAttr.Prefix != null)
+                // null value is null regardless of prefix seting
+                if ((keyAttr.Prefix != null) && (!attrValue.NULL))
                 {
                     // attribute must be string regardless of attribute type
 
@@ -107,7 +108,6 @@ namespace NBasis.OneTable.Attributization
 
             return i;
         }
-
 
         private void SetProperty(TItem i, PropertyInfo property, AttributeValue attributeValue)
         {

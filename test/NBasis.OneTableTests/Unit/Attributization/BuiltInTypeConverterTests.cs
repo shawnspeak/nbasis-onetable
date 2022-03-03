@@ -112,10 +112,14 @@ namespace NBasis.OneTableTests.Unit.Attributization
         [Attribute]
         public string StringProp { get; set; }
 
+        [GPK1]
+        public string NullGPK { get; set; }
+
+        [GSK1]
+        public string NullGSK { get; set; }
+
         public static TestClassWithAllBuiltInTypesNullable TestDataAllNull()
         {
-            var rand = new Random();
-
             return new TestClassWithAllBuiltInTypesNullable()
             {
                 Pk = Guid.NewGuid().ToString(),
@@ -169,7 +173,7 @@ namespace NBasis.OneTableTests.Unit.Attributization
 
             Assert.NotNull(values);
 
-            Assert.Equal(13, values.Count);
+            Assert.Equal(15, values.Count);
 
             Assert.Equal(item.Pk, values[tableContext.Configuration.KeyAttributes.PKName].S);
             Assert.Equal(item.Sk, values[tableContext.Configuration.KeyAttributes.SKName].S);
@@ -185,6 +189,9 @@ namespace NBasis.OneTableTests.Unit.Attributization
             Assert.True(values["LongProp"].NULL);
             Assert.True(values["ShortProp"].NULL);
             Assert.True(values["StringProp"].NULL);
+
+            Assert.True(values[string.Format(tableContext.Configuration.KeyAttributes.GPKNameFormat, 1)].NULL);
+            Assert.True(values[string.Format(tableContext.Configuration.KeyAttributes.GSKNameFormat, 1)].NULL);
         }
     }
 }

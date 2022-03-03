@@ -28,7 +28,7 @@ namespace NBasis.OneTable
                 {
                     string fieldName = keyAttr.GetFieldName(_context);
 
-                    if (keyAttr.Prefix != null)
+                    if ((keyAttr.Prefix != null) && (!attrValue.NULL))
                     {
                         // attribute must be string regardless of attribute type
 

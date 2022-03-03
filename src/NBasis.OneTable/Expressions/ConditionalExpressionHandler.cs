@@ -136,7 +136,7 @@ namespace NBasis.OneTable.Expressions
                 var keyAttr = condition.KeyAttributes.OrderBy(k => k.IndexNumber).First();
                 if (converter.TryWriteAsObject(val, propertyType, out AttributeValue attrValue))
                 {
-                    if (keyAttr.Prefix != null)
+                    if ((keyAttr.Prefix != null) && (!attrValue.NULL))
                     {
                         // attribute must be string regardless of attribute type
 
