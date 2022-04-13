@@ -35,8 +35,8 @@
             string prefix = null,
             Type converter = null
         ) : base(prefix, converter)
-        {            
-        }        
+        {
+        }
     }
     
     public sealed class PKAttribute : ItemKeyAttribute

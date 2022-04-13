@@ -7,7 +7,7 @@ using Xunit;
 namespace NBasis.OneTableTests.Unit.Keys
 {
     public class KeyOverlapTestClass
-    {        
+    {
         [PK]
         [GPK2("G2PREF")]
         public string PK { get; set; }
@@ -19,6 +19,17 @@ namespace NBasis.OneTableTests.Unit.Keys
         [GPK1("GPPREF")]
         [GSK2("G2PREF")]
         public string GPK1 { get; set; }
+    }
+
+    public class InverseKeyOverlapTestClass
+    {
+        [PK]
+        [GSK1]
+        public string PK { get; set; }
+
+        [GPK1]
+        [SK]
+        public string SK { get; set; }
     }
 
     public class ItemQueryExpressionHandlerTests
@@ -181,6 +192,27 @@ namespace NBasis.OneTableTests.Unit.Keys
             Assert.Equal("PKP#12", details.AttributeValues[":pk"].S);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("SKP#", details.AttributeValues[":sk"].S);
+        }
+
+
+        [Fact]
+        public void Inverse_pk_selects_gsi()
+        {
+            var tableContext = new TestContext();
+            var expHandler = new ItemQueryExpressionHandler<InverseKeyOverlapTestClass>(tableContext);
+
+            var details = expHandler.Handle(i => i.SK == "12");
+
+            Assert.NotNull(details);
+
+            Assert.Single(details.AttributeNames);
+            Assert.Single(details.AttributeValues);
+            Assert.Equal("#pk = :pk", details.QueryExpression);
+
+            Assert.Equal("gsi_1",details.IndexName);
+
+            Assert.Equal("GPK1", details.AttributeNames["#pk"]);
+            Assert.Equal("12", details.AttributeValues[":pk"].S);
         }
     }
 }

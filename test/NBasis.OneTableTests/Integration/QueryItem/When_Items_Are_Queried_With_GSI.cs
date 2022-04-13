@@ -9,17 +9,19 @@ using Xunit;
 
 namespace NBasis.OneTableTests.Integration.QueryItem
 {
-    public class SimpleQueryItemTest
+    public class QueryItemWithGSITest
     {
         [PK]
+        [GSK1]
         public string PK { get; set; }
 
         [SK]
+        [GPK1]
         public string SK { get; set; }
 
-        public static SimpleQueryItemTest TestData()
+        public static QueryItemWithGSITest TestData()
         {
-            return new SimpleQueryItemTest()
+            return new QueryItemWithGSITest()
             {
                 PK = Guid.NewGuid().ToString(),
                 SK = Guid.NewGuid().ToString()
@@ -28,18 +30,17 @@ namespace NBasis.OneTableTests.Integration.QueryItem
     }
 
     [Collection("DynamoDbDocker")]
-    public class When_Items_Are_Queried : OneTableTestBase<TestTableContext>
+    public class When_Items_Are_Queried_With_Gsi : OneTableTestBase<TestTableContext>
     {
-        public When_Items_Are_Queried(DynamoDbDockerFixture fixture) : base(fixture)
+        public When_Items_Are_Queried_With_Gsi(DynamoDbDockerFixture fixture) : base(fixture)
         {
         }
 
         [Fact]
         public async Task Then_can_query_items()
         {
-            var testClass1 = SimpleQueryItemTest.TestData();
-            var testClass2 = SimpleQueryItemTest.TestData();
-            testClass2.PK = testClass1.PK;
+            var testClass1 = QueryItemWithGSITest.TestData();
+            var testClass2 = QueryItemWithGSITest.TestData();
 
             await Given();
 
@@ -56,10 +57,10 @@ namespace NBasis.OneTableTests.Integration.QueryItem
                 // make sure item is added
                 var lookup = Container.GetRequiredService<IItemLookup<TestTableContext>>();
 
-                var items = await lookup.Query<SimpleQueryItemTest>(i => i.PK == testClass1.PK);
+                var items = await lookup.Query<QueryItemWithGSITest>(i => i.SK == testClass1.SK);
 
                 Assert.NotNull(items);
-                Assert.Equal(2, items.Results.Count());
+                Assert.Single(items.Results);
             });
         }
     }

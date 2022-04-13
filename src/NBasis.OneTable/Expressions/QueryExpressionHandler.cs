@@ -308,7 +308,9 @@ namespace NBasis.OneTable.Expressions
                         .Where(k => k.KeyAttributes.Any(ka => ka.KeyType == KeyType.Partition) && k.Operator == QueryOperator.Equal);
             if (pks.Count() == 0) // will always have a PK
                 throw new ArgumentException("Missing a valid PK or GPK key expression");
-            var sks = foundKeys.Where(k => k.KeyAttributes.Any(ka => ka.KeyType == KeyType.Sort));
+
+            // PKs decides the indexes we are working with.. SKs must match those indexes
+            var sks = foundKeys.Where(k => k.KeyAttributes.Any(ka => ka.KeyType == KeyType.Sort && pks.Any(pk => pk.KeyAttributes.Where(pka => pka.KeyType == KeyType.Partition).Any(pka => pka.IndexNumber == ka.IndexNumber))));
 
             // if more than one possible, then we need to look at SK to determine which
             ItemQueryExpressionVisitor.FoundKey pk = null;
