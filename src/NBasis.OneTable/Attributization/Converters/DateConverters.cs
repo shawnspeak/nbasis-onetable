@@ -4,7 +4,7 @@ namespace NBasis.OneTable.Attributization.Converters
 {
     public abstract class DateTimeEpochConverterBase : AttributeConverter<DateTime>
     {
-        protected static readonly DateTime UnixEpochDateTimeUtc = new DateTime(621355968000000000L, DateTimeKind.Utc);
+        protected static readonly DateTime UnixEpochDateTimeUtc = new(621355968000000000L, DateTimeKind.Utc);
     }
 
     public sealed class DateTimeEpochMillisecondsConverter : DateTimeEpochConverterBase

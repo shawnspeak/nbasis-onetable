@@ -148,7 +148,7 @@ namespace NBasis.OneTable
 
             var values = new ItemAttributizer<TItem>(_context).Attributize(item);
             var nonKeyValues = values.Where(v => !itemKey.ContainsKey(v.Key));
-            if (nonKeyValues.Count() == 0)
+            if (!nonKeyValues.Any())
             {
                 // must have some values to update
             }

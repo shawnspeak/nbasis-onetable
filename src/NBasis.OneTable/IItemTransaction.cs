@@ -34,7 +34,7 @@ namespace NBasis.OneTable
         readonly IAmazonDynamoDB _client;
         readonly TContext _context;
 
-        private List<TransactWriteItem> _transactItems = new List<TransactWriteItem>();
+        private readonly List<TransactWriteItem> _transactItems = new();
         private TransactWriteItemsResponse _response;
 
         public DynamoDbItemTransaction(
@@ -168,7 +168,7 @@ namespace NBasis.OneTable
 
             var values = new ItemAttributizer<TItem>(_context).Attributize(item);
             var nonKeyValues = values.Where(v => !itemKey.ContainsKey(v.Key));
-            if (nonKeyValues.Count() == 0)
+            if (!nonKeyValues.Any())
             {
                 // must have some values to update
             }

@@ -131,7 +131,7 @@ namespace NBasis.OneTableTests.Unit.Attributization
 
     public class BuiltInTypeConverterTests
     {
-        static readonly DateTime UnixEpochDateTimeUtc = new DateTime(621355968000000000L, DateTimeKind.Utc);
+        static readonly DateTime UnixEpochDateTimeUtc = new(621355968000000000L, DateTimeKind.Utc);
 
         [Fact]
         public void All_built_in_types_are_converted()

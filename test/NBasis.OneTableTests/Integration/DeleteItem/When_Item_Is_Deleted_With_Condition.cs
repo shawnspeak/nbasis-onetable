@@ -74,19 +74,19 @@ namespace NBasis.OneTableTests.Integration.DeleteItem
         {
             var testClass = SimpleDeleteItemTest.TestData();
 
-            await Given(async (store, sp) =>
-            {
-            });
+            await Given(null);
 
             When(async (store, sp) =>
             {
                 await store.Delete(testClass, tc => tc.PK.Exists());
             });
 
-            await Then(async (ex) =>
+            await Then((ex) =>
             {
                 Assert.NotNull(ex);
                 Assert.IsType<ConditionFailedException>(ex);
+
+                return Task.CompletedTask;
             });
         }
     }

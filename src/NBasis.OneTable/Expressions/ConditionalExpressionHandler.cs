@@ -18,8 +18,8 @@ namespace NBasis.OneTable.Expressions
         private string _conditionExpression = "";
         private int _level = 0;
 
-        private Dictionary<string, string> _expressionNames = new();
-        private Dictionary<string, AttributeValue> _expressionValues = new();
+        private readonly Dictionary<string, string> _expressionNames = new();
+        private readonly Dictionary<string, AttributeValue> _expressionValues = new();
 
         public ItemConditionalExpressionVisitor(TableContext context)
         {

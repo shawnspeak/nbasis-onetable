@@ -266,7 +266,7 @@ namespace NBasis.OneTable.Expressions
 
             // get found keys from visitor
             var foundKeys = visitor.FoundKeys;
-            if (foundKeys.Count() > 2)
+            if (foundKeys.Length > 2)
                 throw new ArgumentException("Too many keys in the expression");
 
             // build key item dictionary   
@@ -306,7 +306,7 @@ namespace NBasis.OneTable.Expressions
             // get all the valid pk expressions
             var pks = foundKeys
                         .Where(k => k.KeyAttributes.Any(ka => ka.KeyType == KeyType.Partition) && k.Operator == QueryOperator.Equal);
-            if (pks.Count() == 0) // will always have a PK
+            if (!pks.Any()) // will always have a PK
                 throw new ArgumentException("Missing a valid PK or GPK key expression");
 
             // PKs decides the indexes we are working with.. SKs must match those indexes
@@ -316,7 +316,7 @@ namespace NBasis.OneTable.Expressions
             ItemQueryExpressionVisitor.FoundKey pk = null;
             KeyAttribute keyAttribute = null;
             
-            if (sks.Count() == 0)
+            if (!sks.Any())
             {
                 // otherwise take the min index number
                 pk = pks.OrderBy(k => k.KeyAttributes.Min(ka => ka.IndexNumber)).First();
@@ -328,7 +328,7 @@ namespace NBasis.OneTable.Expressions
                 foreach (var sk in sks)
                 {
                     var i = sk.KeyAttributes.Where(ka => ka.KeyType == KeyType.Sort).Select(ka => ka.IndexNumber);
-                    if (i.Count() > 0)
+                    if (i.Any())
                         sksIndexNumbers.AddRange(i);
                 }
 
@@ -343,7 +343,6 @@ namespace NBasis.OneTable.Expressions
                     }
                 }
             }
-         
 
             details.QueryExpression = "#pk = :pk";
             details.AttributeValues[":pk"] = getAttribute(pk.Member, pk.Value, keyAttribute);
@@ -358,7 +357,7 @@ namespace NBasis.OneTable.Expressions
                 details.IndexName = _context.GSIndexName(keyAttribute.IndexNumber);
             }
 
-            if (sks.Count() > 0)
+            if (sks.Any())
             {
                 // select sks based on index number
                 var sk = foundKeys.FirstOrDefault(k => k.KeyAttributes.Any(ka => ka.KeyType == KeyType.Sort && ka.IndexNumber == keyAttribute.IndexNumber));

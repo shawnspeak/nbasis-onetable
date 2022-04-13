@@ -54,10 +54,12 @@ namespace NBasis.OneTableTests.Integration.PutItem
                 await store.Put(testClass, tc => tc.PK.NotExists());
             });
 
-            await Then(async (ex) =>
+            await Then((ex) =>
             {
                 Assert.NotNull(ex);
                 Assert.IsType<ConditionFailedException>(ex);
+
+                return Task.CompletedTask;
             });
         }
     }
