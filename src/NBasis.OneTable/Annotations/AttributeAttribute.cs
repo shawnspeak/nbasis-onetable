@@ -9,11 +9,11 @@
 
         public AttributeAttribute(
             string fieldName = null, 
-            Type coverter = null
+            Type converter = null
         )
         {
             FieldName = fieldName;
-            Converter = coverter;
+            Converter = converter;
         }
     }
 }

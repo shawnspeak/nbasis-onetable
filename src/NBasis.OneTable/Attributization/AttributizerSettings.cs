@@ -55,7 +55,7 @@ namespace NBasis.OneTable.Attributization
             if (underlying != null )
             {
                 typeToLookup = underlying;
-            }             
+            }
 
             // do we have an override converter?
             if (_overrideConverters.ContainsKey(typeToLookup))

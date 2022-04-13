@@ -1,5 +1,6 @@
 ﻿using Amazon.DynamoDBv2.Model;
 using NBasis.OneTable.Annotations;
+using NBasis.OneTable.Exceptions;
 using System.Reflection;
 
 namespace NBasis.OneTable.Attributization
@@ -15,20 +16,25 @@ namespace NBasis.OneTable.Attributization
 
         private AttributeValue GetAttributeValue(TItem item, PropertyInfo property, AttributeAttribute attrAttr)
         {
-            // resolved converter
+            AttributeConverter converter;
+
+            // resolve converter
             if (attrAttr.Converter != null)
             {
-
+                converter = Activator.CreateInstance(attrAttr.Converter) as AttributeConverter;
             } 
             else
             {
-                var value = property.GetValue(item);
-
-                var converter = _context.AttributizerSettings.GetConverter(property.PropertyType);
-
-                if (converter.TryWriteAsObject(value, property.PropertyType, out AttributeValue attrValue))
-                    return attrValue;
+                converter = _context.AttributizerSettings.GetConverter(property.PropertyType);
             }
+
+            if (converter == null)
+                throw new MissingAttributeConverterException();
+
+            var value = property.GetValue(item);
+            if (converter.TryWriteAsObject(value, property.PropertyType, out AttributeValue attrValue))
+                return attrValue;
+
             return null;
         }
 
@@ -108,9 +114,22 @@ namespace NBasis.OneTable.Attributization
             return i;
         }
 
-        private void SetProperty(TItem i, PropertyInfo property, AttributeValue attributeValue)
+        private void SetProperty(TItem i, PropertyInfo property, AttributeValue attributeValue, AttributeAttribute attrAttr)
         {
-            var converter = _context.AttributizerSettings.GetConverter(property.PropertyType);
+            AttributeConverter converter;
+
+            // resolve converter
+            if (attrAttr.Converter != null)
+            {
+                converter = Activator.CreateInstance(attrAttr.Converter) as AttributeConverter;
+            }
+            else
+            {
+                converter = _context.AttributizerSettings.GetConverter(property.PropertyType);
+            }
+
+            if (converter == null)
+                throw new MissingAttributeConverterException();
 
             if (converter.TryReadAsObject(attributeValue, property.PropertyType, out var value))
                 property.SetValue(i, value);
@@ -144,7 +163,7 @@ namespace NBasis.OneTable.Attributization
                 string fieldName = attr.FieldName ?? property.Name;
                 if (item.ContainsKey(fieldName))
                 {
-                    SetProperty(i, property, item[fieldName]);
+                    SetProperty(i, property, item[fieldName], attr);
                 }
             });
 
@@ -155,7 +174,7 @@ namespace NBasis.OneTable.Attributization
                 {
                     SetKey(i, property, item[fieldName], attr);
                 }
-            });            
+            });
 
             return i;
         }
