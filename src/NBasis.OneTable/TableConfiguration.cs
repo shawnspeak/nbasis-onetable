@@ -32,7 +32,7 @@
                 KeyPrefixDelimiter = other.KeyPrefixDelimiter;
             }
 
-            internal void Validate()
+            internal static void Validate()
             {
                 // names and formats required
 

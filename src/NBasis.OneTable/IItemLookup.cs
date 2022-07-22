@@ -1,6 +1,7 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using NBasis.OneTable.Attributization;
+using NBasis.OneTable.Exceptions;
 using NBasis.OneTable.Expressions;
 using NBasis.OneTable.Validation;
 using System.Linq.Expressions;
@@ -10,7 +11,7 @@ namespace NBasis.OneTable
     public enum Sort
     {
         Ascending,
-        Descending,        
+        Descending,
     }
 
     public class QueryOptions
@@ -25,7 +26,7 @@ namespace NBasis.OneTable
             {
                 Limit = int.MaxValue,
                 Sort = Sort.Ascending
-            };            
+            };
         }
     }
 
@@ -40,6 +41,8 @@ namespace NBasis.OneTable
         Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> krePredicate, Expression<Func<TItem, bool>> filterPredicate, QueryOptions options) where TItem : class;
 
         Task<QueryResults<TItem>> Count<TItem>(Func<TItem, bool> predicate) where TItem : class;
+
+        Task<QueryResults<TItem>> ContinueQuery<TItem>(QueryResults<TItem> previousResults) where TItem : class;
     }
 
     public class DynamoDbItemLookup<TContext> : IItemLookup<TContext> where TContext : TableContext
@@ -118,12 +121,57 @@ namespace NBasis.OneTable
 
             var response = await _client.QueryAsync(request);
 
-            return new QueryResults<TItem>
+            var results =  new QueryResults<TItem>
             {
                 Count = response.Count,
                 ScannedCount = response.ScannedCount,
                 Results = response.Items.Select(i => (new ItemAttributizer<TItem>(_context)).Deattributize(i))
             };
+
+            if (response.LastEvaluatedKey != null)
+            {
+                results.SetContinue(request, response);
+            }
+
+            return results;
+        }
+
+        public async Task<QueryResults<TItem>> ContinueQuery<TItem>(QueryResults<TItem> previousResults) where TItem : class
+        {
+            if (previousResults == null) throw new ArgumentNullException(nameof(previousResults));
+            if (!previousResults.CanContinue) throw new UnableToContinueQueryException();
+
+            // item type will have already been validated
+
+            // we can reuse the previous query
+            var request = new QueryRequest
+            {
+                TableName = _context.TableName, 
+                ExclusiveStartKey = previousResults.QueryResponse.LastEvaluatedKey,
+                ProjectionExpression = previousResults.QueryRequest.ProjectionExpression,
+                KeyConditionExpression = previousResults.QueryRequest.KeyConditionExpression,
+                ExpressionAttributeNames = previousResults.QueryRequest.ExpressionAttributeNames,
+                ExpressionAttributeValues = previousResults.QueryRequest.ExpressionAttributeValues,
+                ScanIndexForward = previousResults.QueryRequest.ScanIndexForward,
+                Limit = previousResults.QueryRequest.Limit,
+                IndexName = previousResults.QueryRequest.IndexName
+            };
+
+            var response = await _client.QueryAsync(request);
+
+            var results = new QueryResults<TItem>
+            {
+                Count = response.Count,
+                ScannedCount = response.ScannedCount,
+                Results = response.Items.Select(i => (new ItemAttributizer<TItem>(_context)).Deattributize(i))
+            };
+
+            if (response.LastEvaluatedKey != null)
+            {
+                results.SetContinue(request, response);
+            }
+
+            return results;
         }
 
         public Task<QueryResults<TItem>> Count<TItem>(Func<TItem, bool> predicate) where TItem : class

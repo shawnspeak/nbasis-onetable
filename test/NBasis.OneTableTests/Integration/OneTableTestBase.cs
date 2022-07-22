@@ -8,7 +8,8 @@ using Xunit;
 namespace NBasis.OneTableTests.Integration
 {
     [Collection("DynamoDbDocker")]
-    public abstract class OneTableTestBase<TContext> where TContext : TableContext
+    public abstract class OneTableTestBase<TContext> : IDisposable
+        where TContext : TableContext
     {
         readonly DynamoDbDockerFixture _fixture;
         readonly protected string TableName = Guid.NewGuid().ToString();
