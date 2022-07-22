@@ -18,7 +18,7 @@ namespace NBasis.OneTable
 
         internal void SetContinue(QueryRequest request, QueryResponse response)
         {
-            if (response.LastEvaluatedKey != null)
+            if ((response.LastEvaluatedKey?.Count ?? 0) > 0)
             {
                 CanContinue = true;
 
