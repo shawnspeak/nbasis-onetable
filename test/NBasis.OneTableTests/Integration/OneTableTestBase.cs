@@ -69,13 +69,14 @@ namespace NBasis.OneTableTests.Integration
             {
                 var store = _provider.GetRequiredService<IItemStore<TContext>>();
                 await _when(store, _provider);
-
-                await then(null);
             }
             catch (Exception ex)
             {
                 await then(ex);
+                return;
             }
+
+            await then(null);
         }
 
         public void Dispose()
