@@ -10,6 +10,7 @@ namespace NBasis.OneTable.Expressions
     public class ItemConditionalExpressionVisitor : ExpressionVisitor
     {
         readonly TableContext _context;
+        readonly bool _allowKeys;
         readonly Stack<string> _fieldNames = new();
         readonly List<FoundCondition> _foundConditions = new();
         private FoundCondition _currentCondition = null;
@@ -21,9 +22,10 @@ namespace NBasis.OneTable.Expressions
         private readonly Dictionary<string, string> _expressionNames = new();
         private readonly Dictionary<string, AttributeValue> _expressionValues = new();
 
-        public ItemConditionalExpressionVisitor(TableContext context)
+        public ItemConditionalExpressionVisitor(TableContext context, bool allowKeys)
         {
             _context = context;
+            _allowKeys = allowKeys;
         }
 
         public string ConditionExpression
@@ -176,6 +178,8 @@ namespace NBasis.OneTable.Expressions
 
                 if (((keys == null) || (keys.Length == 0)) && (attr == null))
                     throw new ArgumentException("Condition expressions must be comprised of key or attribute properties");
+                if ((!_allowKeys) && (keys != null) && (keys.Length > 0))
+                    throw new ArgumentException("Filter expressions cannot contain key properties");
 
                 if (_currentCondition == null)
                 {
@@ -428,7 +432,9 @@ namespace NBasis.OneTable.Expressions
         }        
     }
 
-
+    /// <summary>
+    /// Handle the conditional and filter expressions
+    /// </summary>
     public class ItemConditionalExpressionHandler<TItem> where TItem : class
     {
         readonly TableContext _context;
@@ -438,10 +444,10 @@ namespace NBasis.OneTable.Expressions
             _context = context;
         }
       
-        public ItemConditionalDetails Handle(Expression<Func<TItem, bool>> predicate)
+        public ItemConditionalDetails Handle(Expression<Func<TItem, bool>> predicate, bool allowKeys)
         {
             // visit expression
-            var visitor = new ItemConditionalExpressionVisitor(_context);
+            var visitor = new ItemConditionalExpressionVisitor(_context, allowKeys);
             visitor.Visit(predicate.Body);
 
             return new ItemConditionalDetails

@@ -96,7 +96,7 @@ namespace NBasis.OneTable
             // deal with conditional
             if (conditionalExpression != null)
             {
-                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionalExpression);
+                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionalExpression, true);
                 delete.ExpressionAttributeNames = conditionalDetails.AttributeNames;
                 delete.ExpressionAttributeValues = conditionalDetails.AttributeValues;
                 delete.ConditionExpression = conditionalDetails.ConditionExpression;
@@ -136,7 +136,7 @@ namespace NBasis.OneTable
             // deal with conditional
             if (conditionalExpression != null)
             {
-                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionalExpression);
+                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionalExpression, true);
 
                 put.ExpressionAttributeNames = conditionalDetails.AttributeNames;
                 put.ExpressionAttributeValues = conditionalDetails.AttributeValues;
@@ -181,7 +181,7 @@ namespace NBasis.OneTable
             // deal with conditional
             if (conditionalExpression != null)
             {
-                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionalExpression);
+                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionalExpression, true);
 
                 foreach (var conditionalName in conditionalDetails.AttributeNames)
                 {
@@ -223,7 +223,7 @@ namespace NBasis.OneTable
             // deal with conditional
             if (conditionalExpression != null)
             {
-                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionalExpression);
+                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionalExpression, true);
 
                 check.ExpressionAttributeNames = conditionalDetails.AttributeNames;
                 check.ExpressionAttributeValues = conditionalDetails.AttributeValues;

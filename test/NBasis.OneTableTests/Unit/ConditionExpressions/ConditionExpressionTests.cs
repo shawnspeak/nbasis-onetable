@@ -36,48 +36,48 @@ namespace NBasis.OneTableTests.Unit.ConditionExpressions
             var tableContext = new TestContext();
             var expHandler = new ItemConditionalExpressionHandler<TestClassForConditional>(tableContext);
 
-            var details = expHandler.Handle(i => i.Sk == 12);
+            var details = expHandler.Handle(i => i.Sk == 12, true);
             Assert.Equal("#sk = :sk1", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("12", details.AttributeValues[":sk1"].N);
 
-            details = expHandler.Handle(i => i.Sk != 12);
+            details = expHandler.Handle(i => i.Sk != 12, true);
             Assert.Equal("#sk <> :sk1", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("12", details.AttributeValues[":sk1"].N);
 
-            details = expHandler.Handle(i => i.Sk > 12);
+            details = expHandler.Handle(i => i.Sk > 12, true);
             Assert.Equal("#sk > :sk1", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("12", details.AttributeValues[":sk1"].N);
 
-            details = expHandler.Handle(i => i.Sk >= 12);
+            details = expHandler.Handle(i => i.Sk >= 12, true);
             Assert.Equal("#sk >= :sk1", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("12", details.AttributeValues[":sk1"].N);
 
-            details = expHandler.Handle(i => i.Sk < 12);
+            details = expHandler.Handle(i => i.Sk < 12, true);
             Assert.Equal("#sk < :sk1", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("12", details.AttributeValues[":sk1"].N);
 
-            details = expHandler.Handle(i => i.Sk <= 12);
+            details = expHandler.Handle(i => i.Sk <= 12, true);
             Assert.Equal("#sk <= :sk1", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("12", details.AttributeValues[":sk1"].N);
 
-            details = expHandler.Handle(i => i.Sk.Between(4321, 5321));            
+            details = expHandler.Handle(i => i.Sk.Between(4321, 5321), true);            
             Assert.Equal("#sk BETWEEN :sk1a AND :sk1b", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("4321", details.AttributeValues[":sk1a"].N);
             Assert.Equal("5321", details.AttributeValues[":sk1b"].N);
 
-            details = expHandler.Handle(i => i.Pk.BeginsWith("test"));
+            details = expHandler.Handle(i => i.Pk.BeginsWith("test"), true);
             Assert.Equal("begins_with(#pk,:pk1)", details.ConditionExpression);
             Assert.Equal("PK", details.AttributeNames["#pk"]);
             Assert.Equal("test", details.AttributeValues[":pk1"].S);
 
-            details = expHandler.Handle(i => i.Pk.DoesContain("test"));
+            details = expHandler.Handle(i => i.Pk.DoesContain("test"), true);
             Assert.Equal("contains(#pk,:pk1)", details.ConditionExpression);
             Assert.Equal("PK", details.AttributeNames["#pk"]);
             Assert.Equal("test", details.AttributeValues[":pk1"].S);
@@ -89,7 +89,7 @@ namespace NBasis.OneTableTests.Unit.ConditionExpressions
             var tableContext = new TestContext();
             var expHandler = new ItemConditionalExpressionHandler<TestClassForConditional>(tableContext);
 
-            var details = expHandler.Handle(i => i.Pk.DoesContain("test") && (i.Sk == 12 || i.Sk > 45));
+            var details = expHandler.Handle(i => i.Pk.DoesContain("test") && (i.Sk == 12 || i.Sk > 45), true);
             Assert.Equal("contains(#pk,:pk1) AND (#sk = :sk2 OR #sk > :sk3)", details.ConditionExpression);
             Assert.Equal("PK", details.AttributeNames["#pk"]);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
@@ -98,21 +98,21 @@ namespace NBasis.OneTableTests.Unit.ConditionExpressions
             Assert.Equal("12", details.AttributeValues[":sk2"].N);
             Assert.Equal("45", details.AttributeValues[":sk3"].N);
 
-            var details2 = expHandler.Handle(i => i.Sk > i.Other && i.Pk.BeginsWith("1234") && i.Sk.Exists());
+            var details2 = expHandler.Handle(i => i.Sk > i.Other && i.Pk.BeginsWith("1234") && i.Sk.Exists(), true);
             Assert.Equal("(#sk > #other AND begins_with(#pk,:pk2)) AND attribute_exists(#sk)", details2.ConditionExpression);
             Assert.Equal("PK", details2.AttributeNames["#pk"]);
             Assert.Equal("SK", details2.AttributeNames["#sk"]);
             Assert.Equal("Other", details2.AttributeNames["#other"]);
             Assert.Equal("1234", details2.AttributeValues[":pk2"].S);
 
-            details2 = expHandler.Handle(i => i.Sk > i.Other && (i.Pk.BeginsWith("1234") && i.Sk.Exists()));
+            details2 = expHandler.Handle(i => i.Sk > i.Other && (i.Pk.BeginsWith("1234") && i.Sk.Exists()), true);
             Assert.Equal("#sk > #other AND (begins_with(#pk,:pk2) AND attribute_exists(#sk))", details2.ConditionExpression);
             Assert.Equal("PK", details2.AttributeNames["#pk"]);
             Assert.Equal("SK", details2.AttributeNames["#sk"]);
             Assert.Equal("Other", details2.AttributeNames["#other"]);
             Assert.Equal("1234", details2.AttributeValues[":pk2"].S);
 
-            details2 = expHandler.Handle(i => i.Sk > i.Other && i.Other <= 12);
+            details2 = expHandler.Handle(i => i.Sk > i.Other && i.Other <= 12, true);
             Assert.Equal("#sk > #other AND #other <= :other2", details2.ConditionExpression);            
             Assert.Equal("SK", details2.AttributeNames["#sk"]);
             Assert.Equal("Other", details2.AttributeNames["#other"]);
@@ -125,12 +125,12 @@ namespace NBasis.OneTableTests.Unit.ConditionExpressions
             var tableContext = new TestContext();
             var expHandler = new ItemConditionalExpressionHandler<TestClassForConditional>(tableContext);
 
-            var details = expHandler.Handle(i => i.Sk.Exists());
+            var details = expHandler.Handle(i => i.Sk.Exists(), true);
             Assert.Equal("attribute_exists(#sk)", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Empty(details.AttributeValues);
 
-            details = expHandler.Handle(i => i.Sk.NotExists());
+            details = expHandler.Handle(i => i.Sk.NotExists(), true);
             Assert.Equal("attribute_not_exists(#sk)", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Empty(details.AttributeValues);
@@ -142,41 +142,61 @@ namespace NBasis.OneTableTests.Unit.ConditionExpressions
             var tableContext = new TestContext();
             var expHandler = new ItemConditionalExpressionHandler<TestClassForConditional>(tableContext);
 
-            var details = expHandler.Handle(i => i.Sk == i.Other);
+            var details = expHandler.Handle(i => i.Sk == i.Other, true);
             Assert.Equal("#sk = #other", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("Other", details.AttributeNames["#other"]);
             Assert.Empty(details.AttributeValues);
 
-            details = expHandler.Handle(i => i.Sk != i.Other);
+            details = expHandler.Handle(i => i.Sk != i.Other, true);
             Assert.Equal("#sk <> #other", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("Other", details.AttributeNames["#other"]);
             Assert.Empty(details.AttributeValues);
 
-            details = expHandler.Handle(i => i.Sk > i.Other);
+            details = expHandler.Handle(i => i.Sk > i.Other, true);
             Assert.Equal("#sk > #other", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("Other", details.AttributeNames["#other"]);
             Assert.Empty(details.AttributeValues);
 
-            details = expHandler.Handle(i => i.Sk >= i.Other);
+            details = expHandler.Handle(i => i.Sk >= i.Other, true);
             Assert.Equal("#sk >= #other", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("Other", details.AttributeNames["#other"]);
             Assert.Empty(details.AttributeValues);
 
-            details = expHandler.Handle(i => i.Sk < i.Other);
+            details = expHandler.Handle(i => i.Sk < i.Other, true);
             Assert.Equal("#sk < #other", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("Other", details.AttributeNames["#other"]);
             Assert.Empty(details.AttributeValues);
 
-            details = expHandler.Handle(i => i.Sk <= i.Other);
+            details = expHandler.Handle(i => i.Sk <= i.Other, true);
             Assert.Equal("#sk <= #other", details.ConditionExpression);
             Assert.Equal("SK", details.AttributeNames["#sk"]);
             Assert.Equal("Other", details.AttributeNames["#other"]);
             Assert.Empty(details.AttributeValues);
+        }
+
+
+        [Fact]
+        public void No_key_conditional_expressions_throw_exceptions()
+        {
+            var tableContext = new TestContext();
+            var expHandler = new ItemConditionalExpressionHandler<TestClassForConditional>(tableContext);
+
+            Exception ex = null;
+            try
+            {
+                var details = expHandler.Handle(i => i.Sk.Exists(), false);
+            }
+            catch (Exception e)
+            {
+                ex = e;
+            }
+
+            Assert.NotNull(ex);
         }
     }
 }

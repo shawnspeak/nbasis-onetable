@@ -74,7 +74,7 @@ namespace NBasis.OneTable
             // deal with conditional
             if (conditionExpression != null)
             {
-                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionExpression);
+                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionExpression, true);
 
                 request.ExpressionAttributeNames = conditionalDetails.AttributeNames;
                 request.ExpressionAttributeValues = conditionalDetails.AttributeValues;
@@ -110,7 +110,7 @@ namespace NBasis.OneTable
             // deal with conditional
             if (conditionExpression != null)
             {
-                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionExpression);
+                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionExpression, true);
 
                 request.ExpressionAttributeNames = conditionalDetails.AttributeNames;
                 request.ExpressionAttributeValues = conditionalDetails.AttributeValues;
@@ -161,7 +161,7 @@ namespace NBasis.OneTable
             // deal with conditional
             if (conditionExpression != null)
             {
-                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionExpression);
+                var conditionalDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(conditionExpression, true);
 
                 foreach (var conditionalName in conditionalDetails.AttributeNames)
                 {

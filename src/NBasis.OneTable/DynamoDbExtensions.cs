@@ -53,5 +53,23 @@ namespace NBasis.OneTable
 
             update.UpdateExpression += string.Format("#{0} = :{0}", lowerKey);
         }
+
+        internal static void MergeAttributeNames(this QueryRequest request, Dictionary<string, string> attributeNames)
+        {
+            foreach (var name in attributeNames)
+            {
+                if (!request.ExpressionAttributeNames.ContainsKey(name.Key))
+                    request.ExpressionAttributeNames.Add(name.Key, name.Value);
+            }
+        }
+
+        internal static void MergeAttributeValues(this QueryRequest request, Dictionary<string, AttributeValue> attributeValues)
+        {
+            foreach (var value in attributeValues)
+            {
+                if (!request.ExpressionAttributeValues.ContainsKey(value.Key))
+                    request.ExpressionAttributeValues.Add(value.Key, value.Value);
+            }
+        }
     }
 }

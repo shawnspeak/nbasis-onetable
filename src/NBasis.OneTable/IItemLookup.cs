@@ -38,6 +38,8 @@ namespace NBasis.OneTable
 
         Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> keyPredicate, QueryOptions options) where TItem : class;
 
+        Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> krePredicate, Expression<Func<TItem, bool>> filterPredicate) where TItem : class;
+
         Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> krePredicate, Expression<Func<TItem, bool>> filterPredicate, QueryOptions options) where TItem : class;
 
         Task<QueryResults<TItem>> Count<TItem>(Func<TItem, bool> predicate) where TItem : class;
@@ -95,7 +97,12 @@ namespace NBasis.OneTable
             return this.Query(keyPredicate, null, options);
         }
 
-        public async Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> keyPredicate, Expression<Func<TItem, bool>> filterPredicate, QueryOptions options = null) where TItem : class
+        public Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> keyPredicate, Expression<Func<TItem, bool>> filterPredicate) where TItem : class
+        {
+            return this.Query(keyPredicate, filterPredicate, null);
+        }
+
+        public async Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> keyPredicate, Expression<Func<TItem, bool>> filterPredicate = null, QueryOptions options = null) where TItem : class
         {
             if (keyPredicate == null) throw new ArgumentNullException(nameof(keyPredicate));
 
@@ -107,6 +114,7 @@ namespace NBasis.OneTable
             // build query from predicate
             var queryDetails = new ItemQueryExpressionHandler<TItem>(_context).Handle(keyPredicate);
 
+            // start to build the query request
             var request = new QueryRequest
             {
                 TableName = _context.TableName,
@@ -118,6 +126,15 @@ namespace NBasis.OneTable
                 Limit = options.Limit,
                 IndexName = queryDetails.IndexName
             };
+
+            // construct and apply a filter if needed
+            if (filterPredicate != null)
+            {
+                var filterDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(filterPredicate, false);
+                request.FilterExpression = filterDetails.ConditionExpression;
+                request.MergeAttributeNames(filterDetails.AttributeNames);
+                request.MergeAttributeValues(filterDetails.AttributeValues);
+            }
 
             var response = await _client.QueryAsync(request);
 
@@ -152,6 +169,7 @@ namespace NBasis.OneTable
                 KeyConditionExpression = previousResults.QueryRequest.KeyConditionExpression,
                 ExpressionAttributeNames = previousResults.QueryRequest.ExpressionAttributeNames,
                 ExpressionAttributeValues = previousResults.QueryRequest.ExpressionAttributeValues,
+                FilterExpression = previousResults.QueryRequest.FilterExpression,
                 ScanIndexForward = previousResults.QueryRequest.ScanIndexForward,
                 Limit = previousResults.QueryRequest.Limit,
                 IndexName = previousResults.QueryRequest.IndexName

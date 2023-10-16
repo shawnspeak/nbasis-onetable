@@ -256,13 +256,13 @@ namespace NBasis.OneTable.Expressions
             _context = context;
         }
       
-        public ItemQueryDetails Handle(Expression<Func<TItem, bool>> predicate)
+        public ItemQueryDetails Handle(Expression<Func<TItem, bool>> keyPredicate)
         {
             var details = new ItemQueryDetails();
 
             // visit expression
             var visitor = new ItemQueryExpressionVisitor();
-            visitor.Visit(predicate);
+            visitor.Visit(keyPredicate);
 
             // get found keys from visitor
             var foundKeys = visitor.FoundKeys;
