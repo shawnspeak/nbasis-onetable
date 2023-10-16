@@ -6,12 +6,9 @@ namespace NBasis.OneTable
     {
         internal static void AddUpdateItem(this UpdateItemRequest request, string name, AttributeValue value)
         {
-            if (request.ExpressionAttributeValues == null)
-                request.ExpressionAttributeValues = new Dictionary<string, AttributeValue>();
-            if (request.ExpressionAttributeNames == null)
-                request.ExpressionAttributeNames = new Dictionary<string, string>();
-            if (request.UpdateExpression == null)
-                request.UpdateExpression = "";
+            request.ExpressionAttributeValues ??= new Dictionary<string, AttributeValue>();
+            request.ExpressionAttributeNames ??= new Dictionary<string, string>();
+            request.UpdateExpression ??= "";
 
             var lowerKey = name.ToLower();
             request.ExpressionAttributeValues.Add(":" + lowerKey, value);
@@ -31,12 +28,9 @@ namespace NBasis.OneTable
 
         internal static void AddUpdateItem(this Update update, string name, AttributeValue value)
         {
-            if (update.ExpressionAttributeValues == null)
-                update.ExpressionAttributeValues = new Dictionary<string, AttributeValue>();
-            if (update.ExpressionAttributeNames == null)
-                update.ExpressionAttributeNames = new Dictionary<string, string>();
-            if (update.UpdateExpression == null)
-                update.UpdateExpression = "";
+            update.ExpressionAttributeValues ??= new Dictionary<string, AttributeValue>();
+            update.ExpressionAttributeNames ??= new Dictionary<string, string>();
+            update.UpdateExpression ??= "";
 
             var lowerKey = name.ToLower();
             update.ExpressionAttributeValues.Add(":" + lowerKey, value);

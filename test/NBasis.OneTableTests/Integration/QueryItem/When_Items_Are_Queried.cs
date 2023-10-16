@@ -134,5 +134,37 @@ namespace NBasis.OneTableTests.Integration.QueryItem
                 Assert.Equal(3, items.ScannedCount);
             });
         }
+
+        [Fact]
+        public async Task Then_items_can_be_filtered_on_nulls()
+        {
+            var testClass1 = SimpleQueryItemTest.TestData();
+            var testClass2 = SimpleQueryItemTest.TestData("else");
+            var testClass3 = SimpleQueryItemTest.TestData("none");
+            testClass2.PK = testClass1.PK;
+            testClass3.PK = testClass1.PK;
+
+            await Given();
+
+            When(async (store, sp) =>
+            {
+                await store.Put(testClass1);
+                await store.Put(testClass2);
+                await store.Put(testClass3);
+            });
+
+            await Then(async (ex) =>
+            {
+                Assert.Null(ex);
+
+                // make sure item is added
+                var lookup = Container.GetRequiredService<IItemLookup<TestTableContext>>();
+                var items = await lookup.Query<SimpleQueryItemTest>(i => i.PK == testClass1.PK, i => i.Something == null);
+
+                Assert.NotNull(items);
+                Assert.Equal(1, items.Results.Count());
+                Assert.Equal(3, items.ScannedCount);
+            });
+        }
     }
 }

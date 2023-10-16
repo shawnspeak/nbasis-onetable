@@ -121,6 +121,16 @@ namespace NBasis.OneTable.Expressions
         private KeyValuePair<string, AttributeValue> GetExpessionValue(FoundCondition condition, object val)
         {
             string placeHolder = ":" + condition.Member.Name.ToLower() + condition.N;
+
+            // special case for null value
+            if (val == NullPlaceholder.Value())
+            {
+                return new KeyValuePair<string, AttributeValue>(placeHolder, new AttributeValue
+                {
+                    NULL = true,
+                });
+            }
+
             var propertyType = ((PropertyInfo)condition.Member).PropertyType;
             var converter = _context.AttributizerSettings.GetConverter(propertyType);
 
@@ -383,6 +393,9 @@ namespace NBasis.OneTable.Expressions
 
         private object GetValue(object input)
         {
+            if (input == null)
+                return NullPlaceholder.Value();
+
             var type = input.GetType();
 
             // if it is not simple value

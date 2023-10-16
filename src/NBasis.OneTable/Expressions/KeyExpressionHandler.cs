@@ -38,8 +38,7 @@ namespace NBasis.OneTable.Expressions
             { 
                 get
                 {
-                    if (_pKAttribute == null)
-                        _pKAttribute = Member.GetCustomAttribute(typeof(PKAttribute)) as PKAttribute;
+                    _pKAttribute ??= Member.GetCustomAttribute(typeof(PKAttribute)) as PKAttribute;
                     return _pKAttribute;
                 }
             }
@@ -50,8 +49,7 @@ namespace NBasis.OneTable.Expressions
             {
                 get
                 {
-                    if (_sKAttribute == null)
-                        _sKAttribute = Member.GetCustomAttribute(typeof(SKAttribute)) as SKAttribute;
+                    _sKAttribute ??= Member.GetCustomAttribute(typeof(SKAttribute)) as SKAttribute;
                     return _sKAttribute;
                 }
             }
@@ -204,10 +202,7 @@ namespace NBasis.OneTable.Expressions
                 throw new UnableToWriteAttributeValueException();
             };
 
-            var pk = foundKeys.SingleOrDefault(k => k.PKAttribute != null);
-            if (pk == null) // will always have a PK
-                throw new ArgumentException("Missing PK from key expression");
-            
+            var pk = foundKeys.SingleOrDefault(k => k.PKAttribute != null) ?? throw new ArgumentException("Missing PK from key expression");
             keyItem[_context.Configuration.KeyAttributes.PKName] = getAttribute(pk.Member, pk.Value, pk.PKAttribute);
 
             var sk = foundKeys.SingleOrDefault(k => k.SKAttribute != null);

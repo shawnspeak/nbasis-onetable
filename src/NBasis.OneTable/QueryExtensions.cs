@@ -1,5 +1,6 @@
 ﻿namespace NBasis.OneTable
 {
+#pragma warning disable IDE0060 // Remove unused parameter
     public static class QueryExtensions
     {
         public static bool BeginsWith<T>(this T obj, T start)
@@ -32,4 +33,5 @@
             return true;
         }
     }
+#pragma warning restore IDE0060 // Remove unused parameter
 }
