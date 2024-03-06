@@ -4,6 +4,7 @@ using NBasis.OneTable.Attributization;
 using NBasis.OneTable.Exceptions;
 using NBasis.OneTable.Expressions;
 using NBasis.OneTable.Validation;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace NBasis.OneTable
@@ -16,16 +17,50 @@ namespace NBasis.OneTable
 
     public class QueryOptions
     {
+        /// <summary>
+        /// The maximum number of items to return
+        /// </summary>
         public int Limit { get; set; }
 
+        /// <summary>
+        /// The sort direction of the query
+        /// </summary>
         public Sort Sort { get; set; }
+
+        /// <summary>
+        /// Retrieve only the count of items that would be returned by the query
+        /// </summary>
+        public bool OnlyCount { get; set; }
 
         public static QueryOptions Default()
         {
             return new QueryOptions()
             {
                 Limit = int.MaxValue,
-                Sort = Sort.Ascending
+                Sort = Sort.Ascending,
+                OnlyCount = false
+            };
+        }
+    }
+
+    public class ScanOptions
+    {
+        /// <summary>
+        /// The maximum number of items to return
+        /// </summary>
+        public int Limit { get; set; }
+
+        /// <summary>
+        /// Retrieve only the count of items that would be returned by the query
+        /// </summary>
+        public bool OnlyCount { get; set; }
+
+        public static ScanOptions Default()
+        {
+            return new ScanOptions()
+            {
+                Limit = int.MaxValue,
+                OnlyCount = false
             };
         }
     }
@@ -38,13 +73,17 @@ namespace NBasis.OneTable
 
         Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> keyPredicate, QueryOptions options) where TItem : class;
 
-        Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> krePredicate, Expression<Func<TItem, bool>> filterPredicate) where TItem : class;
+        Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> keyPredicate, Expression<Func<TItem, bool>> filterPredicate) where TItem : class;
 
-        Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> krePredicate, Expression<Func<TItem, bool>> filterPredicate, QueryOptions options) where TItem : class;
-
-        Task<QueryResults<TItem>> Count<TItem>(Func<TItem, bool> predicate) where TItem : class;
+        Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> keyPredicate, Expression<Func<TItem, bool>> filterPredicate, QueryOptions options) where TItem : class;
 
         Task<QueryResults<TItem>> ContinueQuery<TItem>(QueryResults<TItem> previousResults) where TItem : class;
+
+        Task<ScanResults<TItem>> Scan<TItem>(Expression<Func<TItem, bool>> filterPredicate) where TItem : class;
+
+        Task<ScanResults<TItem>> Scan<TItem>(Expression<Func<TItem, bool>> filterPredicate, ScanOptions options) where TItem : class;
+
+        Task<ScanResults<TItem>> ContinueScan<TItem>(ScanResults<TItem> previousResults) where TItem : class;
     }
 
     public class DynamoDbItemLookup<TContext> : IItemLookup<TContext> where TContext : TableContext
@@ -118,13 +157,14 @@ namespace NBasis.OneTable
             var request = new QueryRequest
             {
                 TableName = _context.TableName,
-                ProjectionExpression = (new ItemProjectionHandler<TItem>(_context)).Build(),
+                ProjectionExpression = options.OnlyCount ? null : (new ItemProjectionHandler<TItem>(_context)).Build(),
                 KeyConditionExpression = queryDetails.QueryExpression,
                 ExpressionAttributeNames = queryDetails.AttributeNames,
                 ExpressionAttributeValues = queryDetails.AttributeValues,
                 ScanIndexForward = (options.Sort == Sort.Ascending),
                 Limit = options.Limit,
-                IndexName = queryDetails.IndexName
+                IndexName = queryDetails.IndexName,
+                Select = options.OnlyCount ? Select.COUNT : Select.SPECIFIC_ATTRIBUTES
             };
 
             // construct and apply a filter if needed
@@ -142,7 +182,7 @@ namespace NBasis.OneTable
             {
                 Count = response.Count,
                 ScannedCount = response.ScannedCount,
-                Results = response.Items.Select(i => (new ItemAttributizer<TItem>(_context)).Deattributize(i))
+                Results = options.OnlyCount ? Enumerable.Empty<TItem>() : response.Items.Select(i => (new ItemAttributizer<TItem>(_context)).Deattributize(i))
             };
 
             if (response.LastEvaluatedKey != null)
@@ -172,7 +212,8 @@ namespace NBasis.OneTable
                 FilterExpression = previousResults.QueryRequest.FilterExpression,
                 ScanIndexForward = previousResults.QueryRequest.ScanIndexForward,
                 Limit = previousResults.QueryRequest.Limit,
-                IndexName = previousResults.QueryRequest.IndexName
+                IndexName = previousResults.QueryRequest.IndexName,
+                Select = previousResults.QueryRequest.Select
             };
 
             var response = await _client.QueryAsync(request);
@@ -181,7 +222,7 @@ namespace NBasis.OneTable
             {
                 Count = response.Count,
                 ScannedCount = response.ScannedCount,
-                Results = response.Items.Select(i => (new ItemAttributizer<TItem>(_context)).Deattributize(i))
+                Results = (previousResults.QueryRequest.Select == Select.COUNT) ? Enumerable.Empty<TItem>() : response.Items.Select(i => (new ItemAttributizer<TItem>(_context)).Deattributize(i))
             };
 
             if (response.LastEvaluatedKey != null)
@@ -192,9 +233,91 @@ namespace NBasis.OneTable
             return results;
         }
 
-        public Task<QueryResults<TItem>> Count<TItem>(Func<TItem, bool> predicate) where TItem : class
+        public Task<ScanResults<TItem>> Scan<TItem>(Expression<Func<TItem, bool>> filterPredicate) where TItem : class
         {
-            throw new NotImplementedException();
+            return Scan(filterPredicate, null);
+        }
+
+        public async Task<ScanResults<TItem>> Scan<TItem>(Expression<Func<TItem, bool>> filterPredicate, ScanOptions options) where TItem : class
+        {
+            if (filterPredicate == null) throw new ArgumentNullException(nameof(filterPredicate));
+
+            options ??= ScanOptions.Default();
+
+            var request = new ScanRequest()
+            {
+                TableName = _context.TableName,
+                ProjectionExpression = options.OnlyCount ? null : (new ItemProjectionHandler<TItem>(_context)).Build(),
+                ExpressionAttributeNames = new(),
+                ExpressionAttributeValues = new(),
+                Limit = options.Limit,
+                Select = options.OnlyCount ? Select.COUNT : Select.SPECIFIC_ATTRIBUTES
+            };
+
+            // add record type filter to the scan request
+            request.AddItemTypeFilter<TContext, TItem>(_context);
+
+            // construct and apply a filter if needed
+            if (filterPredicate != null)
+            {
+                var filterDetails = new ItemConditionalExpressionHandler<TItem>(_context).Handle(filterPredicate, true);
+                request.FilterExpression = request.FilterExpression + " AND (" + filterDetails.ConditionExpression + ")";
+                request.MergeAttributeNames(filterDetails.AttributeNames);
+                request.MergeAttributeValues(filterDetails.AttributeValues);
+            }
+
+            var response = await _client.ScanAsync(request);
+
+            var results = new ScanResults<TItem>
+            {
+                Count = response.Count,
+                ScannedCount = response.ScannedCount,
+                Results = options.OnlyCount ? Enumerable.Empty<TItem>() : response.Items.Select(i => (new ItemAttributizer<TItem>(_context)).Deattributize(i))
+            };
+
+            if (response.LastEvaluatedKey != null)
+            {
+                results.SetContinue(request, response);
+            }
+
+            return results;
+        }
+
+        public async Task<ScanResults<TItem>> ContinueScan<TItem>(ScanResults<TItem> previousResults) where TItem : class
+        {
+            if (previousResults == null) throw new ArgumentNullException(nameof(previousResults));
+            if (!previousResults.CanContinue) throw new UnableToContinueQueryException();
+
+            // item type will have already been validated
+
+            // we can reuse the previous scan
+            var request = new ScanRequest
+            {
+                TableName = _context.TableName,
+                ExclusiveStartKey = previousResults.ScanResponse.LastEvaluatedKey,
+                ProjectionExpression = previousResults.ScanRequest.ProjectionExpression,
+                ExpressionAttributeNames = previousResults.ScanRequest.ExpressionAttributeNames,
+                ExpressionAttributeValues = previousResults.ScanRequest.ExpressionAttributeValues,
+                FilterExpression = previousResults.ScanRequest.FilterExpression,
+                Limit = previousResults.ScanRequest.Limit,
+                Select = previousResults.ScanRequest.Select
+            };
+
+            var response = await _client.ScanAsync(request);
+
+            var results = new ScanResults<TItem>
+            {
+                Count = response.Count,
+                ScannedCount = response.ScannedCount,
+                Results = (previousResults.ScanRequest.Select == Select.COUNT) ? Enumerable.Empty<TItem>() : response.Items.Select(i => (new ItemAttributizer<TItem>(_context)).Deattributize(i))
+            };
+
+            if (response.LastEvaluatedKey != null)
+            {
+                results.SetContinue(request, response);
+            }
+
+            return results;
         }
     }    
 }

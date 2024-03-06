@@ -65,5 +65,35 @@ namespace NBasis.OneTable
                     request.ExpressionAttributeValues.Add(value.Key, value.Value);
             }
         }
+
+        internal static void MergeAttributeNames(this ScanRequest request, Dictionary<string, string> attributeNames)
+        {
+            foreach (var name in attributeNames)
+            {
+                if (!request.ExpressionAttributeNames.ContainsKey(name.Key))
+                    request.ExpressionAttributeNames.Add(name.Key, name.Value);
+            }
+        }
+
+        internal static void MergeAttributeValues(this ScanRequest request, Dictionary<string, AttributeValue> attributeValues)
+        {
+            foreach (var value in attributeValues)
+            {
+                if (!request.ExpressionAttributeValues.ContainsKey(value.Key))
+                    request.ExpressionAttributeValues.Add(value.Key, value.Value);
+            }
+        }
+
+        internal static void AddItemTypeFilter<TContext, TItem>(this ScanRequest request, TContext context) where TItem : class where TContext : TableContext
+        {
+            if (!string.IsNullOrWhiteSpace(context.Configuration.ItemTypeAttributeName))
+            {
+                request.FilterExpression = "#OTRT = :OTRT";
+                request.ExpressionAttributeNames.Add("#OTRT", context.Configuration.ItemTypeAttributeName);
+
+                var itemType = typeof(TItem).GetItemType();
+                request.ExpressionAttributeNames.Add(":OTRT", itemType);
+            }
+        }
     }
 }
