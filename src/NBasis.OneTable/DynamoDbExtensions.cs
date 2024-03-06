@@ -92,7 +92,7 @@ namespace NBasis.OneTable
                 request.ExpressionAttributeNames.Add("#OTRT", context.Configuration.ItemTypeAttributeName);
 
                 var itemType = typeof(TItem).GetItemType();
-                request.ExpressionAttributeNames.Add(":OTRT", itemType);
+                request.ExpressionAttributeValues.Add(":OTRT", new AttributeValue(itemType));
             }
         }
     }

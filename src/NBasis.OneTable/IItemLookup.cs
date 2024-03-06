@@ -4,7 +4,6 @@ using NBasis.OneTable.Attributization;
 using NBasis.OneTable.Exceptions;
 using NBasis.OneTable.Expressions;
 using NBasis.OneTable.Validation;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace NBasis.OneTable
@@ -32,15 +31,17 @@ namespace NBasis.OneTable
         /// </summary>
         public bool OnlyCount { get; set; }
 
+        public QueryOptions()
+        {
+            Limit = int.MaxValue;
+            Sort = Sort.Ascending;
+            OnlyCount = false;
+        }
+
         public static QueryOptions Default()
         {
-            return new QueryOptions()
-            {
-                Limit = int.MaxValue,
-                Sort = Sort.Ascending,
-                OnlyCount = false
-            };
-        }
+            return new QueryOptions();
+        }        
     }
 
     public class ScanOptions
@@ -55,13 +56,15 @@ namespace NBasis.OneTable
         /// </summary>
         public bool OnlyCount { get; set; }
 
+        public ScanOptions()
+        {
+            Limit = int.MaxValue;
+            OnlyCount = false;
+        }
+
         public static ScanOptions Default()
         {
-            return new ScanOptions()
-            {
-                Limit = int.MaxValue,
-                OnlyCount = false
-            };
+            return new ScanOptions();
         }
     }
 
@@ -78,6 +81,8 @@ namespace NBasis.OneTable
         Task<QueryResults<TItem>> Query<TItem>(Expression<Func<TItem, bool>> keyPredicate, Expression<Func<TItem, bool>> filterPredicate, QueryOptions options) where TItem : class;
 
         Task<QueryResults<TItem>> ContinueQuery<TItem>(QueryResults<TItem> previousResults) where TItem : class;
+
+        Task<ScanResults<TItem>> Scan<TItem>() where TItem : class;
 
         Task<ScanResults<TItem>> Scan<TItem>(Expression<Func<TItem, bool>> filterPredicate) where TItem : class;
 
@@ -233,6 +238,11 @@ namespace NBasis.OneTable
             return results;
         }
 
+        public Task<ScanResults<TItem>> Scan<TItem>() where TItem : class
+        {
+            return Scan<TItem>(null, null);
+        }
+
         public Task<ScanResults<TItem>> Scan<TItem>(Expression<Func<TItem, bool>> filterPredicate) where TItem : class
         {
             return Scan(filterPredicate, null);
@@ -240,8 +250,6 @@ namespace NBasis.OneTable
 
         public async Task<ScanResults<TItem>> Scan<TItem>(Expression<Func<TItem, bool>> filterPredicate, ScanOptions options) where TItem : class
         {
-            if (filterPredicate == null) throw new ArgumentNullException(nameof(filterPredicate));
-
             options ??= ScanOptions.Default();
 
             var request = new ScanRequest()
