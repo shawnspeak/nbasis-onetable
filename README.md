@@ -5,7 +5,7 @@ This is an Amazon DynamoDb "One Table" library for dotnet. The goal here is to s
 Requirements:
 - You use _Microsoft.Extensions.DependencyInjection.IServiceProvider_ to resolve your services.
 - _IAmazonDynamoDb_ must be registered in within _IServiceProvider_
-- .Net Core 6 (at the moment)
+- .Net Core 6, 7, & 8
 
 ### Setup
 
