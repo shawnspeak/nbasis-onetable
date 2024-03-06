@@ -171,7 +171,7 @@ namespace NBasis.OneTable.Expressions
             // build key item dictionary   
             var keyItem = new Dictionary<string, AttributeValue>();
 
-            var getAttribute = (MemberInfo member, object val, KeyAttribute keyAttr) =>
+            AttributeValue getAttribute(MemberInfo member, object val, KeyAttribute keyAttr)
             {
                 var propertyType = ((PropertyInfo)member).PropertyType;
                 var converter = _context.AttributizerSettings.GetConverter(propertyType);
@@ -200,7 +200,7 @@ namespace NBasis.OneTable.Expressions
                 }
 
                 throw new UnableToWriteAttributeValueException();
-            };
+            }
 
             var pk = foundKeys.SingleOrDefault(k => k.PKAttribute != null) ?? throw new ArgumentException("Missing PK from key expression");
             keyItem[_context.Configuration.KeyAttributes.PKName] = getAttribute(pk.Member, pk.Value, pk.PKAttribute);

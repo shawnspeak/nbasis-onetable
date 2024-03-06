@@ -12,10 +12,10 @@ namespace NBasis.OneTable.Attributization
         internal AttributizerSettings()
         {
             var converters = new Dictionary<Type, AttributeConverter>();
-            var add = (AttributeConverter ac) =>
+            void add(AttributeConverter ac)
             {
                 converters.Add(ac.TypeToConvert, ac);
-            };
+            }
 
             add(BuiltInConverters.BooleanConverter);
             add(BuiltInConverters.DecimalConverter);

@@ -162,7 +162,7 @@ namespace NBasis.OneTableTests.Integration.QueryItem
                 var items = await lookup.Query<SimpleQueryItemTest>(i => i.PK == testClass1.PK, i => i.Something == null);
 
                 Assert.NotNull(items);
-                Assert.Equal(1, items.Results.Count());
+                Assert.Single(items.Results);
                 Assert.Equal(3, items.ScannedCount);
             });
         }

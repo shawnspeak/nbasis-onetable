@@ -272,7 +272,7 @@ namespace NBasis.OneTable.Expressions
             // build key item dictionary   
             var keyItem = new Dictionary<string, AttributeValue>();
 
-            var getAttribute = (MemberInfo member, object val, KeyAttribute keyAttr) =>
+            AttributeValue getAttribute(MemberInfo member, object val, KeyAttribute keyAttr)
             {
                 var propertyType = ((PropertyInfo)member).PropertyType;
                 var converter = _context.AttributizerSettings.GetConverter(propertyType);
@@ -301,7 +301,7 @@ namespace NBasis.OneTable.Expressions
                 }
 
                 throw new UnableToWriteAttributeValueException();
-            };
+            }
 
             // get all the valid pk expressions
             var pks = foundKeys
