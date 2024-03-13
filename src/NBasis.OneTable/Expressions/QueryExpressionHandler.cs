@@ -196,7 +196,7 @@ namespace NBasis.OneTable.Expressions
 
                 // proper order of selected names provided by means of Stack structure
                 var fieldName = _fieldNames.Pop();
-                var fieldInfo = type.GetField(fieldName);
+                var fieldInfo = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                 object value;
                 if (fieldInfo != null)
                 {
@@ -204,7 +204,7 @@ namespace NBasis.OneTable.Expressions
                 }
                 else
                 {
-                    value = type.GetProperty(fieldName).GetValue(input);
+                    value = type.GetProperty(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetValue(input);
                 }
 
                 return GetValue(value);
