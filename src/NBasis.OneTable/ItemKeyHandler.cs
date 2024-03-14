@@ -1,4 +1,5 @@
 ﻿using Amazon.DynamoDBv2.Model;
+using NBasis.OneTable.Annotations;
 
 namespace NBasis.OneTable
 {
@@ -18,6 +19,10 @@ namespace NBasis.OneTable
             // deal with every property and key on item
             typeof(TItem).EnumerateItemKeys((property, keyAttr) =>
             {
+                // must be a PK or SK
+                if (keyAttr is ItemKeyAttribute == false)
+                    return;
+
                 // get value fom item
                 object value = property.GetValue(item);
 

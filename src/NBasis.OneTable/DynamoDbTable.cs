@@ -27,14 +27,14 @@ namespace NBasis.OneTable
                 TableName = GetTableName(),
                 AttributeDefinitions = new System.Collections.Generic.List<AttributeDefinition>
                 {
-                    new AttributeDefinition(_context.Configuration.KeyAttributes.PKName, ScalarAttributeType.S),
-                    new AttributeDefinition(_context.Configuration.KeyAttributes.SKName, ScalarAttributeType.S),
+                    new(_context.Configuration.KeyAttributes.PKName, ScalarAttributeType.S),
+                    new(_context.Configuration.KeyAttributes.SKName, ScalarAttributeType.S),
                 },
                 BillingMode = BillingMode.PAY_PER_REQUEST,
                 KeySchema = new System.Collections.Generic.List<KeySchemaElement>
                 {
-                    new KeySchemaElement(_context.Configuration.KeyAttributes.PKName, KeyType.HASH),
-                    new KeySchemaElement(_context.Configuration.KeyAttributes.SKName, KeyType.RANGE)
+                    new(_context.Configuration.KeyAttributes.PKName, KeyType.HASH),
+                    new(_context.Configuration.KeyAttributes.SKName, KeyType.RANGE)
                 }
             };
 
@@ -55,8 +55,8 @@ namespace NBasis.OneTable
                     IndexName = _context.GSIndexName(idx),
                     KeySchema = new List<KeySchemaElement>
                     {
-                        new KeySchemaElement(_context.GPKAttributeName(idx), KeyType.HASH),
-                        new KeySchemaElement(_context.GSKAttributeName(idx), KeyType.RANGE)
+                        new(_context.GPKAttributeName(idx), KeyType.HASH),
+                        new(_context.GSKAttributeName(idx), KeyType.RANGE)
                     },
                     Projection = new Projection
                     {

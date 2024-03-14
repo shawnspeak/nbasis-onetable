@@ -31,15 +31,12 @@ namespace NBasis.OneTableTests.Integration
         {
             get
             {
-                if (_client == null)
-                {
-                    _client = new AmazonDynamoDBClient(
+                _client ??= new AmazonDynamoDBClient(
                         new Amazon.Runtime.BasicAWSCredentials("key", "secret"), 
                         new AmazonDynamoDBConfig
                         {
                             ServiceURL = $"http://{IPAddress.Loopback}:{_port}"
                         });
-                }
                 return _client;
             }
         }
@@ -63,8 +60,7 @@ namespace NBasis.OneTableTests.Integration
                 {
                     { $"8000/tcp", new List<PortBinding> 
                         { 
-                            new PortBinding 
-                            { 
+                            new() { 
                                 HostIP = IPAddress.Loopback.ToString(), 
                                 HostPort = _port.ToString() 
                             } 

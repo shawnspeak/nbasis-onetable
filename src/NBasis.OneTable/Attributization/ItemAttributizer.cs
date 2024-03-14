@@ -165,18 +165,18 @@ namespace NBasis.OneTable.Attributization
             typeof(TItem).EnumerateItemAttributes((property, attr) =>
             {
                 string fieldName = attr.FieldName ?? property.Name;
-                if (item.ContainsKey(fieldName))
+                if (item.TryGetValue(fieldName, out AttributeValue value))
                 {
-                    SetProperty(i, property, item[fieldName], attr);
+                    SetProperty(i, property, value, attr);
                 }
             });
 
             typeof(TItem).EnumerateItemKeys((property, attr) =>
             {
                 string fieldName = attr.GetFieldName(_context);
-                if (item.ContainsKey(fieldName))
+                if (item.TryGetValue(fieldName, out AttributeValue value))
                 {
-                    SetKey(i, property, item[fieldName], attr);
+                    SetKey(i, property, value, attr);
                 }
             });
 

@@ -25,14 +25,14 @@ namespace NBasis.OneTableTests.Integration
                 TableName = tableName,
                 AttributeDefinitions = new System.Collections.Generic.List<AttributeDefinition>
                 {
-                    new AttributeDefinition("p", ScalarAttributeType.S),
-                    new AttributeDefinition("s", ScalarAttributeType.S),
+                    new("p", ScalarAttributeType.S),
+                    new("s", ScalarAttributeType.S),
                 },
                 BillingMode = BillingMode.PAY_PER_REQUEST,
                 KeySchema = new System.Collections.Generic.List<KeySchemaElement>
                 {
-                    new KeySchemaElement("p", KeyType.HASH),
-                    new KeySchemaElement("s", KeyType.RANGE)
+                    new("p", KeyType.HASH),
+                    new("s", KeyType.RANGE)
                 }
             };
 
