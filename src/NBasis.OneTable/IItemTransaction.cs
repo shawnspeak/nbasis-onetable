@@ -127,6 +127,9 @@ namespace NBasis.OneTable
             // attributize item
             var attributes = new ItemAttributizer<TItem>(_context).Attributize(item);
 
+            // remove null attributes from Put requests
+            attributes = attributes.Where(a => !a.Value.NULL).ToDictionary(a => a.Key, a => a.Value);
+
             var put = new Put
             {
                 TableName = _context.TableName,

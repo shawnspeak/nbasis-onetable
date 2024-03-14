@@ -159,7 +159,7 @@ namespace NBasis.OneTableTests.Integration.QueryItem
 
                 // make sure item is added
                 var lookup = Container.GetRequiredService<IItemLookup<TestTableContext>>();
-                var items = await lookup.Query<SimpleQueryItemTest>(i => i.PK == testClass1.PK, i => i.Something == null);
+                var items = await lookup.Query<SimpleQueryItemTest>(i => i.PK == testClass1.PK, i => !i.Something.Exists());
 
                 Assert.NotNull(items);
                 Assert.Single(items.Results);
