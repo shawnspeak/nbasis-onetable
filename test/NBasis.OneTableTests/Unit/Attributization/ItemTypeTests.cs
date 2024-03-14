@@ -14,6 +14,9 @@ namespace NBasis.OneTableTests.Unit.Attributization
         [SK]
         public string Sk { get; set; }
 
+        [Attribute]
+        public string Nothing { get; set; }
+
         public static TestClassWithItemType TestData()
         {
             return new TestClassWithItemType()
@@ -38,12 +41,14 @@ namespace NBasis.OneTableTests.Unit.Attributization
 
             Assert.NotNull(values);
 
-            Assert.Equal(3, values.Count);
+            Assert.Equal(4, values.Count);
 
             Assert.Equal(item.Pk, values[tableContext.Configuration.KeyAttributes.PKName].S);
             Assert.Equal(item.Sk, values[tableContext.Configuration.KeyAttributes.SKName].S);
 
             Assert.Equal("TEST", values[tableContext.Configuration.ItemTypeAttributeName].S);
+
+            Assert.True(values["Nothing"].NULL);
         }       
-    }
+    }    
 }

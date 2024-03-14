@@ -90,6 +90,9 @@ namespace NBasis.OneTable
             if (string.IsNullOrEmpty(keyAttr.Prefix))
                 return value;
 
+            if (value.NULL)
+                return value;
+
             // prefixed key must be string
             string keyString = value.S;
             if (!string.IsNullOrEmpty(keyString))
