@@ -2,6 +2,7 @@
 using Amazon.DynamoDBv2.Model;
 using NBasis.OneTable.Attributization;
 using NBasis.OneTable.Expressions;
+using NBasis.OneTable.Operations;
 using NBasis.OneTable.Validation;
 using System.Linq.Expressions;
 
@@ -160,26 +161,18 @@ namespace NBasis.OneTable
             // validate item
             new ItemValidator<TItem>(_context).Validate(item);
 
-            // get the key from the item
-            var itemKey = (new ItemKeyHandler<TItem>(_context)).BuildKey(item);
+            // create the operation
+            var operation = UpdateOperation.Create(_context, item);
 
+            // create the update
             var update = new Update
             {
                 TableName = _context.TableName,
-                Key = itemKey
+                Key = operation.Key
             };
 
-            var values = new ItemAttributizer<TItem>(_context).Attributize(item);
-            var nonKeyValues = values.Where(v => !itemKey.ContainsKey(v.Key));
-            if (!nonKeyValues.Any())
-            {
-                // must have some values to update
-            }
-
-            foreach (var value in nonKeyValues)
-            {
-                update.AddUpdateItem(value.Key, value.Value);
-            }
+            // apply the operation
+            update.Apply(operation);
 
             // deal with conditional
             if (conditionalExpression != null)

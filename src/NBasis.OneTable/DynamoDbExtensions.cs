@@ -1,9 +1,18 @@
 ﻿using Amazon.DynamoDBv2.Model;
+using NBasis.OneTable.Operations;
+using System.Xml.Linq;
 
 namespace NBasis.OneTable
 {
     internal static class DynamoDbExtensions
     {
+        internal static void Apply(this UpdateItemRequest request, UpdateOperation operation)
+        {
+            request.ExpressionAttributeValues = operation.GetExpressionAttributeValues();
+            request.ExpressionAttributeNames = operation.GetExpressionAttributeNames();
+            request.UpdateExpression = operation.GetUpdateExpression();
+        }
+
         internal static void AddUpdateItem(this UpdateItemRequest request, string name, AttributeValue value)
         {
             request.ExpressionAttributeValues ??= new Dictionary<string, AttributeValue>();
@@ -26,27 +35,12 @@ namespace NBasis.OneTable
             request.UpdateExpression += string.Format("#{0} = :{0}", lowerKey);
         }
 
-        internal static void AddUpdateItem(this Update update, string name, AttributeValue value)
+        internal static void Apply(this Update update, UpdateOperation operation)
         {
-            update.ExpressionAttributeValues ??= new Dictionary<string, AttributeValue>();
-            update.ExpressionAttributeNames ??= new Dictionary<string, string>();
-            update.UpdateExpression ??= "";
-
-            var lowerKey = name.ToLower();
-            update.ExpressionAttributeValues.Add(":" + lowerKey, value);
-            update.ExpressionAttributeNames.Add("#" + lowerKey, name);
-
-            if (update.UpdateExpression.Length == 0)
-            {
-                update.UpdateExpression += "SET ";
-            }
-            else
-            {
-                update.UpdateExpression += ", ";
-            }
-
-            update.UpdateExpression += string.Format("#{0} = :{0}", lowerKey);
-        }
+            update.ExpressionAttributeValues = operation.GetExpressionAttributeValues();
+            update.ExpressionAttributeNames = operation.GetExpressionAttributeNames();
+            update.UpdateExpression = operation.GetUpdateExpression();
+        }      
 
         internal static void MergeAttributeNames(this QueryRequest request, Dictionary<string, string> attributeNames)
         {
